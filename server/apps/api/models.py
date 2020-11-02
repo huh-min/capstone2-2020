@@ -17,16 +17,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(max_length=2, choices=GENDER_CHOICES)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    username = models.CharField(max_length=30,unique=True)
-    nickname = models.CharField(max_length=30, unique=True)
+    user_id = models.CharField(max_length=30,unique=True)
+    user_name = models.CharField(max_length=30, unique=True)
     
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'user_id'
     REQUIRED_FIELDS = []
     
     objects = CustomUserManager()
     
     def __str__(self):
-        return self.username
+        return self.user_id
 
 
 class Clothes(models.Model):
@@ -42,7 +42,7 @@ class Clothes(models.Model):
 class ClothesSet(models.Model):
 
     clothes = models.ManyToManyField(Clothes)
-    name = models.CharField(max_length=30, null=True)
+    alias = models.CharField(max_length=30, null=True)
     style = models.CharField(max_length=30, null=True, choices=STYLE_CHOICES)
     image_url = models.URLField(unique=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
