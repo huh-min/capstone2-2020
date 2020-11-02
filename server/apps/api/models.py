@@ -14,7 +14,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     birthday = models.DateField(null=True)
     date_joined = models.DateTimeField(default=timezone.now)
-    gender = models.CharField(max_length=2, choices=GENDER_CHOICES)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     user_id = models.CharField(max_length=30,unique=True)
@@ -31,8 +31,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Clothes(models.Model):
 
-    upper_category = models.CharField(max_length=30, choices=UPPER_CATEGORY_CHOICES)
-    lower_category = models.CharField(max_length=30, choices=LOWER_CATEGORY_CHOICES)
+    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)
+    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
     image_url = models.URLField(unique=True)
     alias = models.CharField(max_length=30, null=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -43,7 +43,7 @@ class ClothesSet(models.Model):
 
     clothes = models.ManyToManyField(Clothes)
     alias = models.CharField(max_length=30, null=True)
-    style = models.CharField(max_length=30, null=True, choices=STYLE_CHOICES)
+    style = models.CharField(max_length=9, null=True, choices=STYLE_CHOICES)
     image_url = models.URLField(unique=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
