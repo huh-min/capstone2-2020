@@ -31,12 +31,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Clothes(models.Model):
 
-    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)
-    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
+    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)    
     image_url = models.URLField(unique=True)
     alias = models.CharField(max_length=30, null=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
 
 
 class ClothesSet(models.Model):
@@ -80,6 +80,12 @@ class Weather(models.Model):
     humidity = models.IntegerField()
     wind_speed = models.FloatField()
     precipitation = models.FloatField()
+
+
+class CategoryData(models.Model):
+    clothes_id = models.ForeignKey('Clothes', on_delete=models.CASCADE)
+    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)
+    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
 
 @receiver(pre_delete, sender=Clothes)
 def cascade_delete_pre_delete(sender, instance, **kwargs):
