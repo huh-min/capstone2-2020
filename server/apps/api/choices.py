@@ -3,8 +3,8 @@
 import json
 
 GENDER_CHOICES = [
-    ('남자', '남자'),
-    ('여자', '여자'),
+    ('M', 'M'),
+    ('W', 'W'),
 ]
 
 with open('apps/api/locations/data.json') as json_file:

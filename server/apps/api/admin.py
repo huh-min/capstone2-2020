@@ -6,20 +6,20 @@ from .models import Clothes, ClothesSet, ClothesSetReview
 
 class CustomUserAdmin(UserAdmin):
     model = User
-    list_display = ('username', 'gender', 'birthday', 'is_staff', 'is_active',)
+    list_display = ('user_id', 'gender', 'birthday', 'is_staff', 'is_active',)
     list_filter = ('gender', 'birthday', 'is_staff', 'is_active',)
     fieldsets = (
-        (None, {'fields': ('username', 'password', 'birthday', 'gender')}),
+        (None, {'fields': ('user_id', 'password', 'birthday', 'gender')}),
         ('Permissions', {'fields':('is_staff', 'is_active')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'birthday', 'gender','is_staff', 'is_active')
+            'fields': ('user_id', 'password1', 'password2', 'birthday', 'gender','is_staff', 'is_active')
         }),
     )
-    search_fields = ('username',)
-    ordering = ('username',)
+    search_fields = ('user_id',)
+    ordering = ('user_id',)
     
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Clothes)
