@@ -43,12 +43,17 @@
         <b-img src="@/assets/rain.png" width="30px" />
         {{ round(review.precipitation, 1) }} mm
       </p>
+      <b-col>
+        <b-button @click="deleteCodyReview">삭제하기</b-button>
+      </b-col>
     </template>
   </b-overlay>
 </template>
 
 <script>
 import ReviewIndexComponent from '@/components/ReviewIndexComponent.vue'
+import consts from '@/consts.js'
+import axios from 'axios'
 
 export default {
   components: {
@@ -74,6 +79,30 @@ export default {
     },
     round: function (num, to) {
       return num.toFixed(to)
+    },
+    deleteCodyReview: function () {
+      var vm = this
+      var codyreviewId = vm.review.id
+      var token = window.localStorage.getItem('token')
+      var config = {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+      axios.delete(`${consts.SERVER_BASE_URL}/clothes-set-reviews/${codyreviewId}/`, config)
+        .then(response => {
+          this.$router.push({
+            name: 'Bridge',
+            params: {
+              errorMessage: '해당 코디 리뷰가 삭제되었습니다.',
+              destination: 'Cody',
+              delay: 3,
+              variant: 'success'
+            }
+          })
+        }).catch((ex) => {
+          this.alertMessage = '해당 코디 리뷰를 삭제할 수 없습니다. 다시 시도해주세요'
+          this.showAlert = true
+          console.log(ex)
+        })
     }
   }
 }
