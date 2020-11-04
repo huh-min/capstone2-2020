@@ -27,3 +27,4 @@ admin.site.register(Clothes)
 admin.site.register(ClothesSet)
 admin.site.register(ClothesSetReview)
 admin.site.register(CategoryData)
+
