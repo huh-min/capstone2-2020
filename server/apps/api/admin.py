@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import User
 from .models import Clothes, ClothesSet, ClothesSetReview
+from .models import CategoryData
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -25,3 +26,5 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(Clothes)
 admin.site.register(ClothesSet)
 admin.site.register(ClothesSetReview)
+admin.site.register(CategoryData)
+

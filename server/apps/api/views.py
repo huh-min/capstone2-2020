@@ -269,7 +269,7 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         now = datetime.datetime.now()
         year = str(now.year)
         user_gender = request.user.gender
-        if user_gender=='남자':
+        if user_gender=='M':
             user_gender = 'm'
         else:
             user_gender = 'f'
