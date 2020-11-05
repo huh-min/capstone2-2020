@@ -4,7 +4,7 @@
       <b-card-title>
         {{ clothes.alias }}
       </b-card-title>
-      <b-img :src="clothes.image_url" fluid />
+      <b-img :src="clothes.image_url" fluid style="height:10rem"/>
     </b-card>
     <template v-slot:overlay>
       <span class="text-light" style="word-break: keep-all">
