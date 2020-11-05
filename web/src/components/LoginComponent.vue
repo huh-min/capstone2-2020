@@ -44,7 +44,7 @@ export default {
   methods: {
     handleLogin: function () {
       var token = ''
-      axios.post(`${consts.SERVER_BASE_URL}/api/token/`, { username: this.form.id, password: this.form.password })
+      axios.post(`${consts.SERVER_BASE_URL}/api/token/`, { user_id: this.form.id, password: this.form.password })
         .then(response => {
           token = response.data.access
           window.localStorage.setItem('token', token)

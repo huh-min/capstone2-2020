@@ -5,7 +5,7 @@ from .models import User, Clothes, ClothesSet, ClothesSetReview
 class UserSerializer(serializers.ModelSerializer):    
     class Meta:
         model = User
-        fields = ['id', 'username', 'password', 'nickname', 'gender', 'birthday']
+        fields = ['id', 'user_id', 'password', 'user_name', 'gender', 'birthday']
         extra_kwargs = {'password': {'write_only': True}}
 
 
@@ -21,7 +21,7 @@ class ClothesSetSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ClothesSet
-        fields = ('id', 'clothes', 'name', 'style', 'image_url', 'owner')
+        fields = ('id', 'clothes', 'alias', 'style', 'image_url', 'owner')
         read_only_fields = ('owner', )
         
 class ClothesSetReadSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class ClothesSetReadSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ClothesSet
-        fields = ('id', 'clothes', 'name', 'style', 'image_url', 'owner')
+        fields = ('id', 'clothes', 'alias', 'style', 'image_url', 'owner')
         read_only_fields = ('owner', )
         
 class ClothesSetReviewSerializer(serializers.ModelSerializer):

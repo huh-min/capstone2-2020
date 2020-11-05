@@ -14,36 +14,36 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     birthday = models.DateField(null=True)
     date_joined = models.DateTimeField(default=timezone.now)
-    gender = models.CharField(max_length=2, choices=GENDER_CHOICES)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    username = models.CharField(max_length=30,unique=True)
-    nickname = models.CharField(max_length=30, unique=True)
+    user_id = models.CharField(max_length=30,unique=True)
+    user_name = models.CharField(max_length=30, unique=True)
     
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'user_id'
     REQUIRED_FIELDS = []
     
     objects = CustomUserManager()
     
     def __str__(self):
-        return self.username
+        return self.user_id
 
 
 class Clothes(models.Model):
 
-    upper_category = models.CharField(max_length=30, choices=UPPER_CATEGORY_CHOICES)
-    lower_category = models.CharField(max_length=30, choices=LOWER_CATEGORY_CHOICES)
+    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)    
     image_url = models.URLField(unique=True)
     alias = models.CharField(max_length=30, null=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
 
 
 class ClothesSet(models.Model):
 
     clothes = models.ManyToManyField(Clothes)
-    name = models.CharField(max_length=30, null=True)
-    style = models.CharField(max_length=30, null=True, choices=STYLE_CHOICES)
+    alias = models.CharField(max_length=30, null=True)
+    style = models.CharField(max_length=9, null=True, choices=STYLE_CHOICES)
     image_url = models.URLField(unique=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
@@ -80,6 +80,12 @@ class Weather(models.Model):
     humidity = models.IntegerField()
     wind_speed = models.FloatField()
     precipitation = models.FloatField()
+
+
+class CategoryData(models.Model):
+    clothes_id = models.ForeignKey('Clothes', on_delete=models.CASCADE)
+    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)    
+    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
 
 @receiver(pre_delete, sender=Clothes)
 def cascade_delete_pre_delete(sender, instance, **kwargs):

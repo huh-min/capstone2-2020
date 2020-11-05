@@ -269,7 +269,7 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         now = datetime.datetime.now()
         year = str(now.year)
         user_gender = request.user.gender
-        if user_gender=='남자':
+        if user_gender=='M':
             user_gender = 'm'
         else:
             user_gender = 'f'
@@ -292,7 +292,6 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
 
             # 이미지 url 받아오기
             img_url = ran_li.find('img').get('src')
-            img_url = img_url.replace('//','http://')
 
             # 브랜드명 받아오기
             brand = ran_li.find('p', class_='brackets brand').text
