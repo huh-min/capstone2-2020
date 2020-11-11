@@ -37,6 +37,7 @@ class Clothes(models.Model):
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
+    category = models.ForeignKey('CategoryData', on_delete=models.CASCADE,null=True)
 
 
 class ClothesSet(models.Model):
@@ -83,9 +84,8 @@ class Weather(models.Model):
 
 
 class CategoryData(models.Model):
-    clothes = models.ForeignKey('Clothes', on_delete=models.CASCADE)
-    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)    
-    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
+    upper_category = models.CharField(max_length=9)    
+    lower_category = models.CharField(max_length=18)
 
 @receiver(pre_delete, sender=Clothes)
 def cascade_delete_pre_delete(sender, instance, **kwargs):
