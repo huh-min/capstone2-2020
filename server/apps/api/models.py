@@ -83,7 +83,7 @@ class Weather(models.Model):
 
 
 class CategoryData(models.Model):
-    clothes_id = models.ForeignKey('Clothes', on_delete=models.CASCADE)
+    clothes = models.ForeignKey('Clothes', on_delete=models.CASCADE)
     upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)    
     lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
 
