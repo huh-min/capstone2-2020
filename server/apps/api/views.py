@@ -16,7 +16,7 @@ from statistics import mode
 
 from .exceptions import S3FileError
 from .globalweather import get_global_weather_city_name
-from .models import Clothes, ClothesSet, ClothesSetReview, User, Weather
+from .models import Clothes, ClothesSet, ClothesSetReview, User, Weather, CategoryData
 from .permissions import UserPermissions
 from .serializers import (
     ClothesSerializer,
@@ -24,7 +24,8 @@ from .serializers import (
     ClothesSetReadSerializer,
     ClothesSetReviewSerializer,
     ClothesSetReviewReadSerializer,
-    UserSerializer
+    UserSerializer,
+    CategoryDataSerializer
 )
 from .utils import *
 from .validations import (
@@ -101,6 +102,9 @@ class UserView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
                 {'error': 'please log in'},
                 status=status.HTTP_401_UNAUTHORIZED)
 
+class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = CategoryData.objects.all()
+    serializer_class = CategoryDataSerializer
 
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
