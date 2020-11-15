@@ -48,7 +48,8 @@ export default {
         lower_category: '',
         upper_category: '',
         id: 0,
-        owner: ''
+        owner: '',
+        category: []
       },
       analysis_props: {
         upper: '',
@@ -91,8 +92,8 @@ export default {
         axios.get(`${consts.SERVER_BASE_URL}/clothes/${clothesId}/`)
           .then((response) => {
             vm.clothes = response.data
-            vm.analysis_props.upper = vm.clothes.upper_category
-            vm.analysis_props.lower = vm.clothes.lower_category
+            vm.analysis_props.upper = vm.clothes.category.upper_category
+            vm.analysis_props.lower = vm.clothes.category.lower_category
             vm.analysis_props.alias = vm.clothes.alias
           }).catch((ex) => {
             this.alertMessage = '해당 옷을 불러올 수 없습니다. 다시 시도해주세요'
