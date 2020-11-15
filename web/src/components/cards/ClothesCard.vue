@@ -8,7 +8,7 @@
     </b-card>
     <template v-slot:overlay>
       <span class="text-light" style="word-break: keep-all">
-        {{ clothes.upper_category }} / {{ clothes.lower_category }}
+        {{ clothes.category.upper_category }} / {{ clothes.category.lower_category }}
       </span>
       <b-button class="mt-1" variant="info" @click="handleClick">
         상세보기
