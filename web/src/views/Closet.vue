@@ -115,7 +115,7 @@ export default {
                 this.showAlert = true
               })
           } else if (vm.currentCategories.lower === '전체') {
-            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&categorydata.upper_category=${vm.currentCategories.upper}`, config)
+            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&upper_category=${vm.currentCategories.upper}`, config)
               .then((response) => {
                 vm.clothes = response.data.results
               }).catch((ex) => {
@@ -123,7 +123,7 @@ export default {
                 this.showAlert = true
               })
           } else {
-            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&categorydata.lower_category=${vm.currentCategories.lower}`, config)
+            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&lower_category=${vm.currentCategories.lower}`, config)
               .then((response) => {
                 vm.clothes = response.data.results
               }).catch((ex) => {
