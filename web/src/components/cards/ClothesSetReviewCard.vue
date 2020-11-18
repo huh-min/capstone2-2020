@@ -108,6 +108,9 @@ export default {
           this.showAlert = true
           console.log(ex)
         })
+    },
+    modifyCodyReview: function () {
+      this.$router.push({ name: 'ReviewModify', params: { clothes_set_id: this.clothes_set_id } })
     }
   }
 }
