@@ -5,6 +5,7 @@ from django.db.models import Avg, Max, Min
 from django.utils import timezone
 from filters.mixins import FiltersMixin
 import json
+import random
 from random import sample
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
@@ -266,6 +267,10 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         """
         An endpoint where the lookbook is returned
         """
+
+        # 페이지에서 보여줄 패션 스타일 이미지 갯수
+        img_num = 5
+
         now = datetime.datetime.now()
         year = str(now.year)
         user_gender = request.user.gender
@@ -280,27 +285,42 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         html = BeautifulSoup(req.text, 'html.parser')
         div_tag = html.find('div', class_='list-box box')
 
-        # 0~9 랜덤 숫자 5개 뽑기
-        num_list = sample([0,1,2,3,4,5,6,7,8,9], 5)
+        # img_num 만큼 0~ran_max 랜덤 숫자 뽑기 (반복 x)
+        ran_max = 9
+        num_list = []
+        ran_num = random.randint(0, ran_max)
+
+        for i in range(img_num):
+            while ran_num in num_list:
+                ran_num = random.randint(0, ran_max)
+            num_list.append(ran_num)
 
         li_tag = div_tag.find_all('li', class_='listItem')
         
         lookbook_list = []
-        for count in range(5):
-            ran_img = int(num_list[count])
-            ran_li = li_tag[ran_img]
 
-            # 이미지 url 받아오기
-            img_url = ran_li.find('img').get('src')
+        try:
+            for count in range(img_num):
+                ran_img = int(num_list[count])
+                ran_li = li_tag[ran_img]
 
-            # 브랜드명 받아오기
-            brand = ran_li.find('p', class_='brackets brand').text
+                # 이미지 url 받아오기
+                img_url = ran_li.find('img').get('src')
 
-            # 모델 이름 받아오기
-            name = ran_li.find('span').text
+                # 브랜드명 받아오기
+                brand = ran_li.find('p', class_='brackets brand').text
 
-            lookbook = {'image' : img_url, 'brand' : brand, 'name' : name}
-            lookbook_list.append(lookbook)
+                # 모델 이름 받아오기
+                name = ran_li.find('span').text
+
+                lookbook = {'image' : img_url, 'brand' : brand, 'name' : name}
+                lookbook_list.append(lookbook)
+        
+        # url 변경 등의 문제로 크롤링 오류 발생 시 예외 처리 
+        except:
+            return Response({
+                    'error' : 'internal server error'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(lookbook_list)
 
