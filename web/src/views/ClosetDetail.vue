@@ -48,7 +48,8 @@ export default {
         lower_category: '',
         upper_category: '',
         id: 0,
-        owner: ''
+        owner: '',
+        category: []
       },
       analysis_props: {
         upper: '',

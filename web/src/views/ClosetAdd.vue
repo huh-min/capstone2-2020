@@ -61,7 +61,7 @@ export default {
       var data = {
         image_url: this.image,
         upper_category: this.analysis_props.upper,
-        lower_category: this.analysis_props.lower,
+        lower_category: this.analysis_props.lower
       }
       if (this.analysis_props.alias !== '') {
         data['alias'] = this.analysis_props.alias

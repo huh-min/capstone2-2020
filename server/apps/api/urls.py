@@ -21,7 +21,7 @@ user_router.register('clothes-set-reviews',
                      views.ClothesSetReviewNestedView,
                      basename='user-clothes_set_reviews',
                      parents_query_lookups=['owner'])
-
+                    
 clothes_router = router.register('clothes', views.ClothesView, basename='clothes')
 clothes_router.register('clothes-sets',
                         views.ClothesSetNestedView,
@@ -35,6 +35,7 @@ clothes_sets_router.register('clothes-set-reviews',
                              parents_query_lookups=['clothes_set'])
 
 router.register('clothes-set-reviews', views.ClothesSetReviewView, basename='clothes-set-reviews')
+categorydata_router = router.register('categorydata', views.CategoryDataView, basename='categorydata')
 
 urlpatterns = [
     url('', include(router.urls)),

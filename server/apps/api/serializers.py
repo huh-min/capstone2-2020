@@ -1,6 +1,6 @@
 import json
 from rest_framework import serializers
-from .models import User, Clothes, ClothesSet, ClothesSetReview
+from .models import User, Clothes, ClothesSet, ClothesSetReview, CategoryData
 
 class UserSerializer(serializers.ModelSerializer):    
     class Meta:
@@ -8,11 +8,18 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'user_id', 'password', 'user_name', 'gender', 'birthday']
         extra_kwargs = {'password': {'write_only': True}}
 
-
+class CategoryDataSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = CategoryData
+        fields = ('upper_category', 'lower_category')
+        
 class ClothesSerializer(serializers.ModelSerializer):
+
+    category = CategoryDataSerializer()
+
     class Meta:
         model = Clothes
-        fields = ('id', 'upper_category', 'lower_category', 'image_url', 'alias', 'owner')
+        fields = ('id', 'upper_category', 'lower_category', 'image_url', 'alias', 'owner','category')
         read_only_fields = ('owner', )
 
 
@@ -58,4 +65,5 @@ class ClothesSetReviewReadSerializer(serializers.ModelSerializer):
                   'location', 'review', 'max_temp', 'min_temp', 
                   'max_sensible_temp', 'min_sensible_temp', 'humidity', 
                   'wind_speed', 'precipitation', 'comment', 'owner')
-        
+
+
