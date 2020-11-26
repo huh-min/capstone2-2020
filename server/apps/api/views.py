@@ -803,6 +803,19 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
                 'results': final_results,
             }, status=status.HTTP_200_OK)
 
+    # 국내 현재 날씨/해외 예보 날씨 공통 파라미터 제공
+    def common_weather_api(weather_data):
+        max_temp = float(weather_data['MAX'])
+        min_temp = float(weather_data['MIN'])
+        humidity = int(weather_data['REH'])
+        wind_speed = float(weather_data['WSD'])
+        sense = float(weather_data['WCI'])
+        max_sense = float(weather_data['WCIMAX'])
+        min_sense = float(weather_data['WCIMIN'])
+
+        return (max_temp, min_temp, humidity, wind_speed, sense, max_sense, min_sense)
+    
+
     @action(detail=False, methods=['get'])
     def global_weather(self, request, *args, **kwargs):
         """
@@ -814,14 +827,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         forecast_date = request.query_params.get('date')
         weather_data = get_global_weather_city_name(forecast_date, city_name)
         temperature = float(weather_data['TEMP'])
-        max_temp = float(weather_data['MAX'])
-        min_temp = float(weather_data['MIN'])
-        humidity = int(weather_data['REH'])
-        wind_speed = float(weather_data['WSD'])
         precipitation = float(weather_data['PRE'])
-        sense = float(weather_data['WCI'])
-        max_sense = float(weather_data['WCIMAX'])
-        min_sense = float(weather_data['WCIMIN'])
+        # 날씨 정보 수집
+        max_temp, min_temp, humidity, wind_speed, sense, max_sense, min_sense = ClothesSetReviewView.common_weather_api(weather_data)
 
         return Response({
         'temperature': temperature,
@@ -892,14 +900,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         location = request.query_params.get('location')
         weather_data = get_current_weather(location)
         temperature = float(weather_data['T1H'])
-        max_temp = float(weather_data['MAX'])
-        min_temp = float(weather_data['MIN'])
-        humidity = int(weather_data['REH'])
-        wind_speed = float(weather_data['WSD'])
         precipitation = float(weather_data['RN1'])
-        sense = float(weather_data['WCI'])
-        max_sense = float(weather_data['WCIMAX'])
-        min_sense = float(weather_data['WCIMIN'])
+        # 날씨 정보 수집
+        max_temp, min_temp, humidity, wind_speed, sense, max_sense, min_sense = ClothesSetReviewView.common_weather_api(weather_data)
 
         # Return response
         return Response({
