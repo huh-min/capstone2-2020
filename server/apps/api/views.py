@@ -107,6 +107,8 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = CategoryData.objects.all()
     serializer_class = CategoryDataSerializer
 
+
+
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
     serializer_class = ClothesSerializer
@@ -172,6 +174,7 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         user = request.user
+        
         key = int(kwargs.pop('pk'))
         target_clothes = Clothes.objects.filter(id=key)
         
@@ -499,7 +502,7 @@ class ClothesSetNestedView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
     permission_classes = [IsAuthenticatedOrReadOnly]
         
         
-class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):    
+class ClothesSetReviewView(ClothesSetView,FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):    
     def get_queryset(self):
         queryset = ClothesSetReview.objects.all()
         
@@ -667,11 +670,6 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         
         return super(ClothesSetReviewView, self).create(request, *args, **kwargs)
     
-    def perform_create(self, serializer):
-        serializer.save(
-            owner_id=self.request.user.id
-        )
-
     def update(self, request, *args, **kwargs):
         user = request.user
         key = int(kwargs.pop('pk'))
@@ -965,4 +963,4 @@ class ClothesSetReviewNestedView(FiltersMixin, NestedViewSetMixin, viewsets.Mode
     filter_validation_schema = clothes_set_review_query_schema
     
     # Permissions.
-    permission_classes = [IsAuthenticatedOrReadOnly]   
+    permission_classes = [IsAuthenticatedOrReadOnly]
