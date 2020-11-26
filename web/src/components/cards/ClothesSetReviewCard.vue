@@ -110,7 +110,7 @@ export default {
         })
     },
     modifyCodyReview: function () {
-      this.$router.push({ name: 'ReviewModify', params: { clothes_set_id: this.clothes_set_id } })
+      this.$router.push({ name: 'ReviewModify', params: { review: this.review } })
     }
   }
 }

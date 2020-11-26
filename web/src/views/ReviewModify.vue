@@ -2,22 +2,25 @@
   <b-container>
     <b-row cols="1">
       <b-col cols="12">
+        <ReviewModifyComponent :review="review"/>
       </b-col>
     </b-row>
   </b-container>
 </template>
 
 <script>
-import axios from 'axios'
-import consts from '@/consts.js'
+import ReviewModifyComponent from '@/components/ReviewModifyComponent.vue'
 export default {
   name: 'reviewmodify',
+  components: {
+    ReviewModifyComponent
+  },
   data: function () {
     return {
     }
   },
   props: [
-    'clothes_set_id'
+    'review'
   ]
 }
 </script>
