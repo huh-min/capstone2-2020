@@ -555,6 +555,76 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         serializer = self.get_serializer(queryset, many=True)
         
         return Response(serializer.data)
+
+    # 외출 시작~끝 날짜, 시간 변환
+    def conv_date_time(start, end, location):
+        start_date = start.split('T')[0]
+        start_time = start.split('T')[1].split(':')
+        end_date = end.split('T')[0]
+        end_time = end.split('T')[1].split(':')
+
+        start_year_month_day = start_date.split('-')
+        start_year = start_year_month_day[0]
+        start_month = start_year_month_day[1]
+        start_day = start_year_month_day[2]
+        start_conv_time = start_time[0] + start_time[1]
+        start_conv_time, start_conv_date = convert_time(start_conv_time, start_year, start_month, start_day)
+        start_conv_time = int(start_conv_time[0] + start_conv_time[1])
+        start_conv_date = start_conv_date[:4] + '-' + start_conv_date[4:6] + '-' + start_conv_date[6:]
+
+        end_year_month_day = end_date.split('-')
+        end_year = end_year_month_day[0]
+        end_month = end_year_month_day[1]
+        end_day = end_year_month_day[2]
+        end_conv_time = end_time[0] + end_time[1]
+        end_conv_time, end_conv_date = convert_time(end_conv_time, end_year, end_month, end_day)
+        end_conv_time = int(end_conv_time[0] + end_conv_time[1])
+        end_conv_date = end_conv_date[:4] + '-' + end_conv_date[4:6] + '-' + end_conv_date[6:]
+
+        return (start_conv_date, end_conv_date, start_conv_time, end_conv_time)
+
+    # 외출 시작~끝에 해당하는 날씨 수집
+    def req_weather_api(location, start_conv_date, end_conv_date, start_conv_time, end_conv_time):
+        all_weather_data = Weather.objects.all()
+        weather_data_set = all_weather_data.filter(location_code=location)
+        weather_data_set = weather_data_set.exclude(date__lt=start_conv_date)
+        weather_data_set = weather_data_set.exclude(date__gt=end_conv_date)
+        weather_data_on_start = weather_data_set.exclude(date=start_conv_date, time__lt=start_conv_time)
+        weather_data_on_end = weather_data_on_start.exclude(date=end_conv_date, time__gt=end_conv_time)
+
+        return (weather_data_on_end)
+
+    # 날씨 DB에 날씨 정보 수집 후 저장
+    def common_weather_create(start, end, location, weather_data_on_end):
+        with open('apps/api/locations/data.json') as json_file:
+            json_data = json.load(json_file)
+                    
+            new_x = int((json_data[str(location)]['x']))
+            new_y = int((json_data[str(location)]['y']))    
+
+            date_list = [start, end]
+
+            for date_time in date_list:
+                date = date_time.strftime('%Y-%m-%d %H:%M:%S')
+                year_month_day = date[0].split('-')
+                year = year_month_day[0]
+                month = year_month_day[1]
+                day = year_month_day[2]
+                conv_time = date[1].split(':')
+                conv_time = conv_time[0] + conv_time[1]
+                conv_time, conv_date = convert_time(conv_time, year, month, day)
+            
+                try:
+                    response = get_weather_date(date, str(location))
+                except:
+                    return Response({
+                        'error' : 'internal server error'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                            
+                weather_data_on_end.objects.create(location_code=location, date=date[0:10], time=conv_time[0:2], x=new_x, y=new_y,
+                                                    temp=response['T3H'], sensible_temp=response['WCI'], humidity=response['REH'], 
+                                                    wind_speed=response['WSD'], precipitation=response['R06'])
+
     
     def create(self, request, *args, **kwargs):
         if 'clothes_set' in request.data:
@@ -576,37 +646,14 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
             start = request.data['start_datetime']
             end = request.data['end_datetime']
             location = int(request.data['location'])
-            start_date = start.split('T')[0]
-            start_time = start.split('T')[1].split(':')
-            end_date = end.split('T')[0]
-            end_time = end.split('T')[1].split(':')
 
-            start_year_month_day = start_date.split('-')
-            start_year = start_year_month_day[0]
-            start_month = start_year_month_day[1]
-            start_day = start_year_month_day[2]
-            start_conv_time = start_time[0] + start_time[1]
-            start_conv_time, start_conv_date = convert_time(start_conv_time, start_year, start_month, start_day)
-            start_conv_time = int(start_conv_time[0] + start_conv_time[1])
-            start_conv_date = start_conv_date[:4] + '-' + start_conv_date[4:6] + '-' + start_conv_date[6:]
+            # 외출 시작~끝 날짜, 시간 변환
+            start_conv_date, end_conv_date, start_conv_time, end_conv_time = ClothesSetReviewView.conv_date_time(start, end, location)
 
-            end_year_month_day = end_date.split('-')
-            end_year = end_year_month_day[0]
-            end_month = end_year_month_day[1]
-            end_day = end_year_month_day[2]
-            end_conv_time = end_time[0] + end_time[1]
-            end_conv_time, end_conv_date = convert_time(end_conv_time, end_year, end_month, end_day)
-            end_conv_time = int(end_conv_time[0] + end_conv_time[1])
-            end_conv_date = end_conv_date[:4] + '-' + end_conv_date[4:6] + '-' + end_conv_date[6:]
+            # 외출 시작~끝에 해당하는 날씨 수집을 위한 api 요청
+            weather_data_on_end = ClothesSetReviewView.req_weather_api(location, start_conv_date, end_conv_date, start_conv_time, end_conv_time)
             
-            # API 요청하기
-            all_weather_data = Weather.objects.all()
-            weather_data_set = all_weather_data.filter(location_code=location)
-            weather_data_set = weather_data_set.exclude(date__lt=start_conv_date)
-            weather_data_set = weather_data_set.exclude(date__gt=end_conv_date)
-            weather_data_on_start = weather_data_set.exclude(date=start_conv_date, time__lt=start_conv_time)
-            weather_data_on_end = weather_data_on_start.exclude(date=end_conv_date, time__gt=end_conv_time)
-            
+            # 해당 날씨 정보가 없을 때
             if weather_data_on_end.count()==0:
                 now = datetime.datetime.now()
                 today = now - datetime.timedelta(hours=24)
@@ -617,34 +664,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 else:
-                    with open('apps/api/locations/data.json') as json_file:
-                        json_data = json.load(json_file)
+                    # 날씨 DB에 날씨 정보 수집 후 저장
+                    ClothesSetReviewView.common_weather_create(start, end, location, weather_data_on_end)
                     
-                    new_x = int((json_data[str(location)]['x']))
-                    new_y = int((json_data[str(location)]['y']))    
-
-                    date_list = [start, end]
-
-                    for date_time in date_list:
-                        date = date_time.strftime('%Y-%m-%d %H:%M:%S')
-                        year_month_day = date[0].split('-')
-                        year = year_month_day[0]
-                        month = year_month_day[1]
-                        day = year_month_day[2]
-                        conv_time = date[1].split(':')
-                        conv_time = conv_time[0] + conv_time[1]
-                        conv_time, conv_date = convert_time(conv_time, year, month, day)
-
-                        try:
-                            response = get_weather_date(date, str(location))
-                        except:
-                            return Response({
-                                'error' : 'internal server error'
-                            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                        weather_data_on_end.objects.create(location_code=location, date=date[0:10], time=conv_time[0:2], x=new_x, y=new_y,
-                                                            temp=response['T3H'], sensible_temp=response['WCI'], humidity=response['REH'], 
-                                                            wind_speed=response['WSD'], precipitation=response['R06'])
                                                                   
             request.data['max_temp'] = weather_data_on_end.aggregate(Max('temp'))['temp__max']
             request.data['min_temp'] = weather_data_on_end.aggregate(Min('temp'))['temp__min']
@@ -663,6 +685,7 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         
         return super(ClothesSetReviewView, self).create(request, *args, **kwargs)
     
+
     def perform_create(self, serializer):
         serializer.save(
             owner_id=self.request.user.id
@@ -682,37 +705,14 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
             start = request.data['start_datetime']
             end = request.data['end_datetime']
             location = int(request.data['location'])
-            start_date = start.split('T')[0]
-            start_time = start.split('T')[1].split(':')
-            end_date = end.split('T')[0]
-            end_time = end.split('T')[1].split(':')
-
-            start_year_month_day = start_date.split('-')
-            start_year = start_year_month_day[0]
-            start_month = start_year_month_day[1]
-            start_day = start_year_month_day[2]
-            start_conv_time = start_time[0] + start_time[1]
-            start_conv_time, start_conv_date = convert_time(start_conv_time, start_year, start_month, start_day)
-            start_conv_time = int(start_conv_time[0] + start_conv_time[1])
-            start_conv_date = start_conv_date[:4] + '-' + start_conv_date[4:6] + '-' + start_conv_date[6:]
-
-            end_year_month_day = end_date.split('-')
-            end_year = end_year_month_day[0]
-            end_month = end_year_month_day[1]
-            end_day = end_year_month_day[2]
-            end_conv_time = end_time[0] + end_time[1]
-            end_conv_time, end_conv_date = convert_time(end_conv_time, end_year, end_month, end_day)
-            end_conv_time = int(end_conv_time[0] + end_conv_time[1])
-            end_conv_date = end_conv_date[:4] + '-' + end_conv_date[4:6] + '-' + end_conv_date[6:]
             
-            # API 요청하기
-            all_weather_data = Weather.objects.all()
-            weather_data_set = all_weather_data.filter(location_code=location)
-            weather_data_set = weather_data_set.exclude(date__lt=start_conv_date)
-            weather_data_set = weather_data_set.exclude(date__gt=end_conv_date)
-            weather_data_on_start = weather_data_set.exclude(date=start_conv_date, time__lt=start_conv_time)
-            weather_data_on_end = weather_data_on_start.exclude(date=end_conv_date, time__gt=end_conv_time)
+            # 외출 시작~끝 날짜, 시간 변환
+            start_conv_date, end_conv_date, start_conv_time, end_conv_time = ClothesSetReviewView.conv_date_time(start, end, location)
 
+            # 외출 시작~끝에 해당하는 날씨 수집을 위한 api 요청
+            weather_data_on_end = ClothesSetReviewView.req_weather_api(location, start_conv_date, end_conv_date, start_conv_time, end_conv_time)
+            
+            # 해당 날씨 정보가 없을 때
             if weather_data_on_end.count()==0:
                 now = datetime.datetime.now()
                 today = now - datetime.timedelta(hours=24)
@@ -723,34 +723,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 else:
-                    with open('apps/api/locations/data.json') as json_file:
-                        json_data = json.load(json_file)
-                    
-                    new_x = int((json_data[str(location)]['x']))
-                    new_y = int((json_data[str(location)]['y']))    
-
-                    date_list = [start, end]
-
-                    for date_time in date_list:
-                        date = date_time.strftime('%Y-%m-%d %H:%M:%S')
-                        year_month_day = date[0].split('-')
-                        year = year_month_day[0]
-                        month = year_month_day[1]
-                        day = year_month_day[2]
-                        conv_time = date[1].split(':')
-                        conv_time = conv_time[0] + conv_time[1]
-                        conv_time, conv_date = convert_time(conv_time, year, month, day)
-            
-                        try:
-                            response = get_weather_date(date, str(location))
-                        except:
-                            return Response({
-                                'error' : 'internal server error'
-                            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                            
-                        weather_data_on_end.objects.create(location_code=location, date=date[0:10], time=conv_time[0:2], x=new_x, y=new_y,
-                                                            temp=response['T3H'], sensible_temp=response['WCI'], humidity=response['REH'], 
-                                                            wind_speed=response['WSD'], precipitation=response['R06'])
+                    # 날씨 DB에 날씨 정보 수집 후 저장
+                    ClothesSetReviewView.common_review_create(start, end, location, weather_data_on_end)
+        
           
             request.data['max_temp'] = weather_data_on_end.aggregate(Max('temp'))['temp__max']
             request.data['min_temp'] = weather_data_on_end.aggregate(Min('temp'))['temp__min']
