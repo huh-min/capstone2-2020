@@ -406,6 +406,15 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
             
     
+    # 요청된 이미지를 s3에 저장 후 url 반환
+    def get_image_url(req_image):
+        image = byte_to_image(req_image)
+        temp_url = save_image_s3(image, 'clothes-sets')
+        image_url = move_image_to_saved(temp_url, 'clothes-sets')
+
+        return (image_url)
+
+
     def create(self, request, *args, **kwargs):
         if 'clothes' in request.data.keys():
             user = request.user
@@ -426,11 +435,8 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
                     }, status=status.HTTP_200_OK)
         
         if 'image' in request.data.keys():
-            image = byte_to_image(request.data['image'])
-            temp_url = save_image_s3(image, 'clothes-sets')
-            image_url = move_image_to_saved(temp_url, 'clothes-sets')
-            
-            request.data['image_url'] = image_url
+            # 해당 image의 url           
+            request.data['image_url'] = ClothesSetView.get_image_url(request.data['image'])
         
         else:
             return Response({
@@ -453,11 +459,8 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
             }, status=status.HTTP_401_UNAUTHORIZED)
             
         if 'image' in request.data.keys():
-            image = byte_to_image(request.data['image'])
-            temp_url = save_image_s3(image, 'clothes-sets')
-            image_url = move_image_to_saved(temp_url, 'clothes-sets')
-            
-            request.data['image_url'] = image_url
+            # 해당 image의 url             
+            request.data['image_url'] = ClothesSetView.get_image_url(request.data['image'])
             
         return super().update(request, *args, **kwargs)
     
