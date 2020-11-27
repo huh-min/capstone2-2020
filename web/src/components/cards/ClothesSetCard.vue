@@ -14,7 +14,7 @@
         <b-carousel-slide v-for="clothe in clothes_set.clothes" :key="clothe.id"
                           :img-src="clothe.image_url" style="height:8rem">
         <span class="p-1 text-light bg-dark font-weight-bold">
-          {{ clothe.alias }}
+          {{ clothes_set.alias }}
         </span>
         </b-carousel-slide>
       </b-carousel>

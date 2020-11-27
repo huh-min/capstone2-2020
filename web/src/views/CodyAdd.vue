@@ -186,14 +186,14 @@ export default {
 
       var data = {
         clothes: clothes,
-        name: this.codyName,
+        alias: this.codyName,
         style: this.style,
         image: this.canvas.toDataURL().split(',')[1]
       }
 
       axios.post(`${consts.SERVER_BASE_URL}/clothes-sets/`, data, config)
         .then((response) => {
-          var msg = `'${response.data.name}' 코디가 성공적으로 등록되었습니다!`
+          var msg = `'${response.data.alias}' 코디가 성공적으로 등록되었습니다!`
           this.$router.push({
             name: 'Bridge',
             params: {
