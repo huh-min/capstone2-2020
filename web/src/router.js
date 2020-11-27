@@ -12,6 +12,7 @@ import Cody from './views/Cody.vue'
 import CodyAdd from './views/CodyAdd.vue'
 import CodyDetail from './views/CodyDetail.vue'
 import Bridge from './views/Bridge.vue'
+import ReviewModify from './views/ReviewModify.vue'
 
 Vue.use(Router)
 
@@ -81,6 +82,12 @@ export default new Router({
       path: '/bridge',
       name: 'Bridge',
       component: Bridge,
+      props: true
+    },
+    {
+      path: '/review/modify',
+      name: 'ReviewModify',
+      component: ReviewModify,
       props: true
     }
   ]
