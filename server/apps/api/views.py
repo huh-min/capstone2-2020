@@ -227,20 +227,24 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         
         weather_type = get_weather_class([max_temp, min_temp, wind_speed, humidity])
         cody_review_set = ClothesSetReview.objects.all()
+        # 모든 사용자 중 (날씨 적절성 3 + 현재와 유사한 날씨)인 코디 리뷰 추출
         filtered_cody_review_set = cody_review_set.filter(review=3, weather_type=weather_type)
 
+        # 추출된 코디 리뷰의 코디 id 저장
         filtered_clothes_set_id = []
-        for filtered_cody_review in filtered_cody_review_set:
-            filtered_clothes_set_id.append(filtered_cody_review.clothes_set.id)
+        # flat=True : dict 형식으로 변환
+        filtered_clothes_set_id.append(filtered_cody_review_set.values_list('clothes_set', flat=True))
         
+        # id로 필터링 된 코디 query set
         filtered_clothes_set = ClothesSet.objects.filter(pk__in=filtered_clothes_set_id)
         
         combination_dict = {}
         for clothes_set in filtered_clothes_set:
+            
+            # 한 코디에 대한 각 옷들의 하위 카테고리 추출(dict 형태)
             clothes_combination = set()
-            for clothes in clothes_set.clothes.all():
-                clothes_combination.add(clothes.lower_category)
-                
+            clothes_combination = clothes_set.clothes.values_list('lower_category', flat=True).order_by('lower_category').distinct()
+                        
             comb = tuple(clothes_combination)
             if comb in combination_dict.keys():
                 combination_dict[comb][0] += 1
