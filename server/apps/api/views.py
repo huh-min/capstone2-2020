@@ -235,7 +235,7 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         # for filtered_cody_review in filtered_cody_review_set:
         #     filtered_clothes_set_id.append(filtered_cody_review.clothes_set.id)
 
-        # flat=True : 리스트 형식으로 변환
+        # flat=True : dict 형식으로 변환
         filtered_clothes_set_id.append(filtered_cody_review_set.values_list('clothes_set', flat=True))
         
         # id로 필터링 된 코디 query set
@@ -243,12 +243,11 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         
         combination_dict = {}
         for clothes_set in filtered_clothes_set:
+            
+            # 한 코디에 대한 각 옷들의 하위 카테고리 추출(dict 형태)
             clothes_combination = set()
-            # 한 코디에 대한 각 옷들의 하위 카테고리
-            # for clothes in clothes_set.clothes.all():
-            #     clothes_combination.add(clothes.lower_category)
-            clothes_combination.add(clothes_set.clothes.all().values_list('lower_category', flat=True))
-                
+            clothes_combination = clothes_set.clothes.values_list('lower_category', flat=True).order_by('lower_category').distinct()
+                        
             comb = tuple(clothes_combination)
             if comb in combination_dict.keys():
                 combination_dict[comb][0] += 1
