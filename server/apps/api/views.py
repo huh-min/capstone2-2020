@@ -230,11 +230,8 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         # 모든 사용자 중 (날씨 적절성 3 + 현재와 유사한 날씨)인 코디 리뷰 추출
         filtered_cody_review_set = cody_review_set.filter(review=3, weather_type=weather_type)
 
-        filtered_clothes_set_id = []
         # 추출된 코디 리뷰의 코디 id 저장
-        # for filtered_cody_review in filtered_cody_review_set:
-        #     filtered_clothes_set_id.append(filtered_cody_review.clothes_set.id)
-
+        filtered_clothes_set_id = []
         # flat=True : dict 형식으로 변환
         filtered_clothes_set_id.append(filtered_cody_review_set.values_list('clothes_set', flat=True))
         
