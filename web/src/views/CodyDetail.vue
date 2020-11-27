@@ -146,7 +146,7 @@ export default {
           .then((response) => {
             vm.clothes_set = response.data
             vm.analysis_props.style = vm.clothes_set.style
-            vm.analysis_props.name = vm.clothes_set.name
+            vm.analysis_props.name = vm.clothes_set.alias
           }).catch((ex) => {
             this.alertMessage = '해당 코디를 불러올 수 없습니다. 다시 시도해주세요'
             this.showAlert = true
