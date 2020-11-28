@@ -18,6 +18,17 @@
             <b-img :src="review.clothes_set.image_url" fluid style="height:30rem"/>
         </b-col>
         <b-col md="6" cols="12">
+            <b-row>
+                <ReviewAnalysisComponent :analysis_props.sync="analysis_props" :isDisabled="disableAnalysis" />
+            </b-row>
+            <b-row>
+                <b-col cols="6">
+                  <b-button pill class="w-75" @click="handleModify">수정하기</b-button>
+                </b-col>
+                <b-col cols="6">
+                  <b-button pill class="w-75" @click="handleUpdate">확인하기</b-button>
+                </b-col>
+              </b-row>
         </b-col>
     </b-row>
 </b-container>
@@ -26,12 +37,18 @@
 <script>
 import consts from '@/consts.js'
 import axios from 'axios'
-
+import ReviewAnalysisComponent from '@/components/ReviewAnalysisComponent.vue'
 export default {
+  components: {
+    ReviewAnalysisComponent
+  },
   data: function () {
     return {
       showAlert: false,
-      alertMessage: ''
+      alertMessage: '',
+      analysis_props: {
+      },
+      disableAnalysis: true
     }
   },
   props: [
@@ -75,6 +92,11 @@ export default {
             this.showAlert = true
           })
       }
+    }
+  },
+  methods: {
+    handleModify: function () {
+      this.disableAnalysis = false
     }
   }
 }
