@@ -23,10 +23,10 @@
             </b-row>
             <b-row>
                 <b-col cols="6">
-                  <b-button pill class="w-75" @click="handleModify">수정하기</b-button>
+                  <b-button pill class="w-75 button" @click="handleModify">수정하기</b-button>
                 </b-col>
                 <b-col cols="6">
-                  <b-button pill class="w-75" @click="handleUpdate">확인하기</b-button>
+                  <b-button pill class="w-75 button" @click="handleUpdate">확인하기</b-button>
                 </b-col>
               </b-row>
         </b-col>
@@ -47,6 +47,8 @@ export default {
       showAlert: false,
       alertMessage: '',
       analysis_props: {
+        comment: '',
+        review: '3'
       },
       disableAnalysis: true
     }
@@ -97,14 +99,41 @@ export default {
   methods: {
     handleModify: function () {
       this.disableAnalysis = false
+    },
+    handleUpdate: function () {
+      var vm = this
+      var reviewId = vm.review.id
+      var token = window.localStorage.getItem('token')
+      var config = {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+      var data = {
+        comment: vm.analysis_props.comment,
+        review: vm.analysis_props.review
+      }
+      axios.patch(`${consts.SERVER_BASE_URL}/clothes-set-reviews/${reviewId}/`, data, config)
+        .then(response => {
+          this.alertMessage = '옷의 리뷰를 수정했습니다.'
+          this.showAlert = true
+          vm.analysis_props.comment = response.data.comment
+          vm.analysis_props.review = response.data.review
+          vm.disableAnalysis = true
+        }).catch((ex) => {
+          this.alertMessage = '해당 옷의 리뷰를 수정할 수 없습니다. 다시 시도해주세요'
+          this.showAlert = true
+          console.log(ex)
+        })
     }
   }
 }
 </script>
 
 <style scoped>
-h3{
+h3 {
     padding-top: 30px;
     padding-bottom: 20px;
+}
+.button {
+    margin-top: 30px;
 }
 </style>
