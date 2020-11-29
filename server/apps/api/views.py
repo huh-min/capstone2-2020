@@ -154,8 +154,6 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         # Move image from temp to saved on s3 storage.
-        # TODO(mskwon1): data 타입이 json이 아닐 경우 바꿔줘야함.
-        # request.data._mutable = True
         if 'image_url' in request.data.keys():
             image_url = request.data['image_url']
             try:
@@ -226,9 +224,8 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         humidity = float(request.query_params.get('humidity'))
         
         weather_type = get_weather_class([max_temp, min_temp, wind_speed, humidity])
-        cody_review_set = ClothesSetReview.objects.all()
         # 모든 사용자 중 (날씨 적절성 3 + 현재와 유사한 날씨)인 코디 리뷰 추출
-        filtered_cody_review_set = cody_review_set.filter(review=3, weather_type=weather_type)
+        filtered_cody_review_set = ClothesSetReview.objects.all().filter(review=3, weather_type=weather_type)
 
         # 추출된 코디 리뷰의 코디 id 저장
         filtered_clothes_set_id = []
@@ -241,11 +238,8 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         combination_dict = {}
         for clothes_set in filtered_clothes_set:
             
-            # 한 코디에 대한 각 옷들의 하위 카테고리 추출(dict 형태)
-            clothes_combination = set()
-            clothes_combination = clothes_set.clothes.values_list('lower_category', flat=True).order_by('lower_category').distinct()
-                        
-            comb = tuple(clothes_combination)
+            # 한 코디에 대한 각 옷들의 하위 카테고리 추출
+            comb = tuple(clothes_set.clothes.values_list('lower_category', flat=True).order_by('lower_category').distinct())
             if comb in combination_dict.keys():
                 combination_dict[comb][0] += 1
                 combination_dict[comb][1].add(clothes_set.image_url)
@@ -278,22 +272,13 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
 
         # 페이지에서 보여줄 패션 스타일 이미지 갯수
         img_num = 5
-
-        now = datetime.datetime.now()
-        year = str(now.year)
-        user_gender = request.user.gender
-        if user_gender=='M':
-            user_gender = 'm'
-        else:
-            user_gender = 'f'
-
-        url = 'https://www.musinsa.com/index.php?m=shopstaff&_y=' + year + '&ordw=d_regis&gender=' + user_gender
+        year = str(datetime.datetime.now().year)
+        user_gender = 'm' if request.user.gender == 'M' else 'f'
+        url = ''.join(['https://www.musinsa.com/index.php?m=shopstaff&_y=', year, '&ordw=d_regis&gender=', user_gender])
         
-        req = requests.get(url)
-        html = BeautifulSoup(req.text, 'html.parser')
-        div_tag = html.find('div', class_='list-box box')
+        div_tag = BeautifulSoup(requests.get(url).text, 'html.parser').find('div', class_='list-box box')
 
-        # img_num 만큼 0~ran_max 랜덤 숫자 뽑기 (반복 x)
+        # img_num 만큼 0~ran_max 랜덤 숫자 뽑기(반복 x)
         ran_max = 9
         num_list = []
         ran_num = random.randint(0, ran_max)
@@ -306,23 +291,16 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         li_tag = div_tag.find_all('li', class_='listItem')
         
         lookbook_list = []
-
         try:
             for count in range(img_num):
-                ran_img = int(num_list[count])
-                ran_li = li_tag[ran_img]
-
+                ran_li = li_tag[int(num_list[count])]
                 # 이미지 url 받아오기
                 img_url = ran_li.find('img').get('src')
-
                 # 브랜드명 받아오기
                 brand = ran_li.find('p', class_='brackets brand').text
-
                 # 모델 이름 받아오기
                 name = ran_li.find('span').text
-
-                lookbook = {'image' : img_url, 'brand' : brand, 'name' : name}
-                lookbook_list.append(lookbook)
+                lookbook_list.append({'image' : img_url, 'brand' : brand, 'name' : name})
         
         # url 변경 등의 문제로 크롤링 오류 발생 시 예외 처리 
         except:
