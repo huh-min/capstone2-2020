@@ -541,21 +541,13 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         end_date = end.split('T')[0]
         end_time = end.split('T')[1].split(':')
 
-        start_year_month_day = start_date.split('-')
-        start_year = start_year_month_day[0]
-        start_month = start_year_month_day[1]
-        start_day = start_year_month_day[2]
-        start_conv_time = start_time[0] + start_time[1]
-        start_conv_time, start_conv_date = convert_time(start_conv_time, start_year, start_month, start_day)
+        # 외출 시작 시간, 시작 년/달/일 -> 변환된 시간, 날짜
+        start_conv_time, start_conv_date = convert_time(start_time[0] + start_time[1], start_date.split('-')[0], start_date.split('-')[1], start_date.split('-')[2])
         start_conv_time = int(start_conv_time[0] + start_conv_time[1])
         start_conv_date = start_conv_date[:4] + '-' + start_conv_date[4:6] + '-' + start_conv_date[6:]
 
-        end_year_month_day = end_date.split('-')
-        end_year = end_year_month_day[0]
-        end_month = end_year_month_day[1]
-        end_day = end_year_month_day[2]
-        end_conv_time = end_time[0] + end_time[1]
-        end_conv_time, end_conv_date = convert_time(end_conv_time, end_year, end_month, end_day)
+        # 외출 끝 시간, 끝 년/달/일 -> 변환된 시간, 날짜
+        end_conv_time, end_conv_date = convert_time(end_time[0] + end_time[1], end_date.split('-')[0], end_date.split('-')[1], end_date.split('-')[2])
         end_conv_time = int(end_conv_time[0] + end_conv_time[1])
         end_conv_date = end_conv_date[:4] + '-' + end_conv_date[4:6] + '-' + end_conv_date[6:]
 
@@ -563,10 +555,8 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
 
     # 외출 시작~끝에 해당하는 날씨 수집
     def req_weather_api(location, start_conv_date, end_conv_date, start_conv_time, end_conv_time):
-        all_weather_data = Weather.objects.all()
-        weather_data_set = all_weather_data.filter(location_code=location)
-        weather_data_set = weather_data_set.exclude(date__lt=start_conv_date)
-        weather_data_set = weather_data_set.exclude(date__gt=end_conv_date)
+        # 지역, 시작~끝 날짜에 따른 날씨 필터링
+        weather_data_set = Weather.objects.all().filter(location_code=location).exclude(date__lt=start_conv_date, date__gt=end_conv_date)
         weather_data_on_start = weather_data_set.exclude(date=start_conv_date, time__lt=start_conv_time)
         weather_data_on_end = weather_data_on_start.exclude(date=end_conv_date, time__gt=end_conv_time)
 
@@ -579,18 +569,12 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
                     
             new_x = int((json_data[str(location)]['x']))
             new_y = int((json_data[str(location)]['y']))    
-
             date_list = [start, end]
 
             for date_time in date_list:
                 date = date_time.strftime('%Y-%m-%d %H:%M:%S')
-                year_month_day = date[0].split('-')
-                year = year_month_day[0]
-                month = year_month_day[1]
-                day = year_month_day[2]
-                conv_time = date[1].split(':')
-                conv_time = conv_time[0] + conv_time[1]
-                conv_time, conv_date = convert_time(conv_time, year, month, day)
+                # 시간, 년, 월, 일 -> 변환된 시간, 날짜
+                conv_time, conv_date = convert_time(date[1].split(':')[0] + date[1].split(':')[1], date[0].split('-')[0], date[0].split('-')[1], date[0].split('-')[2])
             
                 try:
                     response = get_weather_date(date, str(location))
@@ -606,10 +590,7 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
     
     def create(self, request, *args, **kwargs):
         if 'clothes_set' in request.data:
-            user = request.user
-            
-            all_clothes_set = ClothesSet.objects.all()
-            filtered_clothes_set = all_clothes_set.filter(owner_id=user.id)
+            filtered_clothes_set = ClothesSet.objects.all().filter(owner_id=request.user.id)
             filtered_clothes_set_id = []
             for clothes_set in filtered_clothes_set:
                 filtered_clothes_set_id.append(int(clothes_set.id))
@@ -627,14 +608,12 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
 
             # 외출 시작~끝 날짜, 시간 변환
             start_conv_date, end_conv_date, start_conv_time, end_conv_time = ClothesSetReviewView.conv_date_time(start, end, location)
-
             # 외출 시작~끝에 해당하는 날씨 수집을 위한 api 요청
             weather_data_on_end = ClothesSetReviewView.req_weather_api(location, start_conv_date, end_conv_date, start_conv_time, end_conv_time)
             
             # 해당 날씨 정보가 없을 때
             if weather_data_on_end.count()==0:
-                now = datetime.datetime.now()
-                today = now - datetime.timedelta(hours=24)
+                today = datetime.datetime.now() - datetime.timedelta(hours=24)
 
                 if parse(start) < today:
                     return Response({
@@ -668,11 +647,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         serializer.save(owner_id=self.request.user.id)
 
     def update(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_review_set = ClothesSetReview.objects.filter(id=key)
+        target_clothes_review_set = ClothesSetReview.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_review_set[0].owner.id):
+        if request.user.id != int(target_clothes_review_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
@@ -690,8 +667,7 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
             
             # 해당 날씨 정보가 없을 때
             if weather_data_on_end.count()==0:
-                now = datetime.datetime.now()
-                today = now - datetime.timedelta(hours=24)
+                today = datetime.datetime.now() - datetime.timedelta(hours=24)
 
                 if parse(start) < today:
                     return Response({
@@ -721,11 +697,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         return super(ClothesSetReviewView, self).update(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_review_set = ClothesSetReview.objects.filter(id=key)
+        target_clothes_review_set = ClothesSetReview.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_review_set[0].owner.id):
+        if request.user.id != int(target_clothes_review_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
@@ -764,8 +738,8 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         final_results = []
         offset = 0 if offset == None else int(offset)
         limit = count if limit == None else int(limit)
-        limit_count = 0
-        
+
+        limit_count = 0        
         for result in results[offset:]:
             limit_count += 1
             final_results.append(result)
@@ -851,8 +825,8 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         final_results = []
         offset = 0 if offset == None else int(offset)
         limit = count if limit == None else int(limit)
-        limit_count = 0
-        
+
+        limit_count = 0        
         for result in results[offset:]:
             limit_count += 1
             final_results.append(result)
