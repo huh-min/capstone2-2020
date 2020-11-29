@@ -201,13 +201,15 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         image_tensor = image_to_tensor(image)
         inference_result = execute_inference(image_tensor)
         upper, lower = get_categories_from_predictions(inference_result)
-        
+        category_id = CategoryData.objects.all().filter(upper_category=upper, lower_category=lower).values('id')
         image = remove_background(image)
         image_url = save_image_s3(image, 'clothes')
         
         return Response({'image_url': image_url, 
                          'upper_category':upper, 
-                         'lower_category':lower}, status=status.HTTP_200_OK)
+                         'lower_category':lower,
+                         'category_id':category_id
+                         }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
     def today_category(self, request, *args, **kwargs):
