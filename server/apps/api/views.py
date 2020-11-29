@@ -154,8 +154,6 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         # Move image from temp to saved on s3 storage.
-        # TODO(mskwon1): data 타입이 json이 아닐 경우 바꿔줘야함.
-        # request.data._mutable = True
         if 'image_url' in request.data.keys():
             image_url = request.data['image_url']
             try:
@@ -226,9 +224,8 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         humidity = float(request.query_params.get('humidity'))
         
         weather_type = get_weather_class([max_temp, min_temp, wind_speed, humidity])
-        cody_review_set = ClothesSetReview.objects.all()
         # 모든 사용자 중 (날씨 적절성 3 + 현재와 유사한 날씨)인 코디 리뷰 추출
-        filtered_cody_review_set = cody_review_set.filter(review=3, weather_type=weather_type)
+        filtered_cody_review_set = ClothesSetReview.objects.all().filter(review=3, weather_type=weather_type)
 
         # 추출된 코디 리뷰의 코디 id 저장
         filtered_clothes_set_id = []
@@ -241,11 +238,8 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         combination_dict = {}
         for clothes_set in filtered_clothes_set:
             
-            # 한 코디에 대한 각 옷들의 하위 카테고리 추출(dict 형태)
-            clothes_combination = set()
-            clothes_combination = clothes_set.clothes.values_list('lower_category', flat=True).order_by('lower_category').distinct()
-                        
-            comb = tuple(clothes_combination)
+            # 한 코디에 대한 각 옷들의 하위 카테고리 추출
+            comb = tuple(clothes_set.clothes.values_list('lower_category', flat=True).order_by('lower_category').distinct())
             if comb in combination_dict.keys():
                 combination_dict[comb][0] += 1
                 combination_dict[comb][1].add(clothes_set.image_url)
@@ -278,22 +272,13 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
 
         # 페이지에서 보여줄 패션 스타일 이미지 갯수
         img_num = 5
-
-        now = datetime.datetime.now()
-        year = str(now.year)
-        user_gender = request.user.gender
-        if user_gender=='M':
-            user_gender = 'm'
-        else:
-            user_gender = 'f'
-
-        url = 'https://www.musinsa.com/index.php?m=shopstaff&_y=' + year + '&ordw=d_regis&gender=' + user_gender
+        year = str(datetime.datetime.now().year)
+        user_gender = 'm' if request.user.gender == 'M' else 'f'
+        url = ''.join(['https://www.musinsa.com/index.php?m=shopstaff&_y=', year, '&ordw=d_regis&gender=', user_gender])
         
-        req = requests.get(url)
-        html = BeautifulSoup(req.text, 'html.parser')
-        div_tag = html.find('div', class_='list-box box')
+        div_tag = BeautifulSoup(requests.get(url).text, 'html.parser').find('div', class_='list-box box')
 
-        # img_num 만큼 0~ran_max 랜덤 숫자 뽑기 (반복 x)
+        # img_num 만큼 0~ran_max 랜덤 숫자 뽑기(반복 x)
         ran_max = 9
         num_list = []
         ran_num = random.randint(0, ran_max)
@@ -306,23 +291,16 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         li_tag = div_tag.find_all('li', class_='listItem')
         
         lookbook_list = []
-
         try:
             for count in range(img_num):
-                ran_img = int(num_list[count])
-                ran_li = li_tag[ran_img]
-
+                ran_li = li_tag[int(num_list[count])]
                 # 이미지 url 받아오기
                 img_url = ran_li.find('img').get('src')
-
                 # 브랜드명 받아오기
                 brand = ran_li.find('p', class_='brackets brand').text
-
                 # 모델 이름 받아오기
                 name = ran_li.find('span').text
-
-                lookbook = {'image' : img_url, 'brand' : brand, 'name' : name}
-                lookbook_list.append(lookbook)
+                lookbook_list.append({'image' : img_url, 'brand' : brand, 'name' : name})
         
         # url 변경 등의 문제로 크롤링 오류 발생 시 예외 처리 
         except:
@@ -397,11 +375,9 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         if request.query_params.get('review'):
             reviews = ClothesSetReview.objects.all()
-            
-            queryset_list = list(queryset)
-            for clothesSet in queryset_list:
-                included_reviews = reviews.filter(clothes_set__id=clothesSet.id)
-                if len(included_reviews) == 0:
+        
+            for clothesSet in list(queryset):
+                if len(reviews.filter(clothes_set__id=clothesSet.id)) == 0:
                     queryset = queryset.exclude(id=clothesSet.id)
 
         page = self.paginate_queryset(queryset)
@@ -425,17 +401,12 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         if 'clothes' in request.data.keys():
-            user = request.user
-            
-            all_clothes = Clothes.objects.all()
-            filtered_clothes = all_clothes.filter(owner_id=user.id)
+            filtered_clothes = Clothes.objects.all().filter(owner_id=request.user.id)
             filtered_clothes_id = []
             for clothes in filtered_clothes:
                 filtered_clothes_id.append(int(clothes.id))
                 
             # 입력된 옷들이 모두 해당 유저의 것인지 확인.
-            # TODO(mskwon1): content-type이 json이 아닌경우 바꿔줘야함.
-            # for clothes_id in request.data.getlist('clothes'):
             for clothes_id in request.data['clothes']:
                 if int(clothes_id) not in filtered_clothes_id:
                     return Response({
@@ -457,11 +428,9 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         serializer.save(owner_id = self.request.user.id)
 
     def update(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_set = ClothesSet.objects.filter(id=key)
+        target_clothes_set = ClothesSet.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_set[0].owner.id):
+        if request.user.id != int(target_clothes_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
@@ -473,11 +442,9 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_set = ClothesSet.objects.filter(id=key)
+        target_clothes_set = ClothesSet.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_set[0].owner.id):
+        if request.user.id != int(target_clothes_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
@@ -574,21 +541,13 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         end_date = end.split('T')[0]
         end_time = end.split('T')[1].split(':')
 
-        start_year_month_day = start_date.split('-')
-        start_year = start_year_month_day[0]
-        start_month = start_year_month_day[1]
-        start_day = start_year_month_day[2]
-        start_conv_time = start_time[0] + start_time[1]
-        start_conv_time, start_conv_date = convert_time(start_conv_time, start_year, start_month, start_day)
+        # 외출 시작 시간, 시작 년/달/일 -> 변환된 시간, 날짜
+        start_conv_time, start_conv_date = convert_time(start_time[0] + start_time[1], start_date.split('-')[0], start_date.split('-')[1], start_date.split('-')[2])
         start_conv_time = int(start_conv_time[0] + start_conv_time[1])
         start_conv_date = start_conv_date[:4] + '-' + start_conv_date[4:6] + '-' + start_conv_date[6:]
 
-        end_year_month_day = end_date.split('-')
-        end_year = end_year_month_day[0]
-        end_month = end_year_month_day[1]
-        end_day = end_year_month_day[2]
-        end_conv_time = end_time[0] + end_time[1]
-        end_conv_time, end_conv_date = convert_time(end_conv_time, end_year, end_month, end_day)
+        # 외출 끝 시간, 끝 년/달/일 -> 변환된 시간, 날짜
+        end_conv_time, end_conv_date = convert_time(end_time[0] + end_time[1], end_date.split('-')[0], end_date.split('-')[1], end_date.split('-')[2])
         end_conv_time = int(end_conv_time[0] + end_conv_time[1])
         end_conv_date = end_conv_date[:4] + '-' + end_conv_date[4:6] + '-' + end_conv_date[6:]
 
@@ -596,10 +555,8 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
 
     # 외출 시작~끝에 해당하는 날씨 수집
     def req_weather_api(location, start_conv_date, end_conv_date, start_conv_time, end_conv_time):
-        all_weather_data = Weather.objects.all()
-        weather_data_set = all_weather_data.filter(location_code=location)
-        weather_data_set = weather_data_set.exclude(date__lt=start_conv_date)
-        weather_data_set = weather_data_set.exclude(date__gt=end_conv_date)
+        # 지역, 시작~끝 날짜에 따른 날씨 필터링
+        weather_data_set = Weather.objects.all().filter(location_code=location).exclude(date__lt=start_conv_date, date__gt=end_conv_date)
         weather_data_on_start = weather_data_set.exclude(date=start_conv_date, time__lt=start_conv_time)
         weather_data_on_end = weather_data_on_start.exclude(date=end_conv_date, time__gt=end_conv_time)
 
@@ -612,18 +569,12 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
                     
             new_x = int((json_data[str(location)]['x']))
             new_y = int((json_data[str(location)]['y']))    
-
             date_list = [start, end]
 
             for date_time in date_list:
                 date = date_time.strftime('%Y-%m-%d %H:%M:%S')
-                year_month_day = date[0].split('-')
-                year = year_month_day[0]
-                month = year_month_day[1]
-                day = year_month_day[2]
-                conv_time = date[1].split(':')
-                conv_time = conv_time[0] + conv_time[1]
-                conv_time, conv_date = convert_time(conv_time, year, month, day)
+                # 시간, 년, 월, 일 -> 변환된 시간, 날짜
+                conv_time, conv_date = convert_time(date[1].split(':')[0] + date[1].split(':')[1], date[0].split('-')[0], date[0].split('-')[1], date[0].split('-')[2])
             
                 try:
                     response = get_weather_date(date, str(location))
@@ -639,10 +590,7 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
     
     def create(self, request, *args, **kwargs):
         if 'clothes_set' in request.data:
-            user = request.user
-            
-            all_clothes_set = ClothesSet.objects.all()
-            filtered_clothes_set = all_clothes_set.filter(owner_id=user.id)
+            filtered_clothes_set = ClothesSet.objects.all().filter(owner_id=request.user.id)
             filtered_clothes_set_id = []
             for clothes_set in filtered_clothes_set:
                 filtered_clothes_set_id.append(int(clothes_set.id))
@@ -660,14 +608,12 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
 
             # 외출 시작~끝 날짜, 시간 변환
             start_conv_date, end_conv_date, start_conv_time, end_conv_time = ClothesSetReviewView.conv_date_time(start, end, location)
-
             # 외출 시작~끝에 해당하는 날씨 수집을 위한 api 요청
             weather_data_on_end = ClothesSetReviewView.req_weather_api(location, start_conv_date, end_conv_date, start_conv_time, end_conv_time)
             
             # 해당 날씨 정보가 없을 때
             if weather_data_on_end.count()==0:
-                now = datetime.datetime.now()
-                today = now - datetime.timedelta(hours=24)
+                today = datetime.datetime.now() - datetime.timedelta(hours=24)
 
                 if parse(start) < today:
                     return Response({
@@ -701,11 +647,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         serializer.save(owner_id=self.request.user.id)
 
     def update(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_review_set = ClothesSetReview.objects.filter(id=key)
+        target_clothes_review_set = ClothesSetReview.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_review_set[0].owner.id):
+        if request.user.id != int(target_clothes_review_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
@@ -723,8 +667,7 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
             
             # 해당 날씨 정보가 없을 때
             if weather_data_on_end.count()==0:
-                now = datetime.datetime.now()
-                today = now - datetime.timedelta(hours=24)
+                today = datetime.datetime.now() - datetime.timedelta(hours=24)
 
                 if parse(start) < today:
                     return Response({
@@ -754,11 +697,9 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         return super(ClothesSetReviewView, self).update(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_review_set = ClothesSetReview.objects.filter(id=key)
+        target_clothes_review_set = ClothesSetReview.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_review_set[0].owner.id):
+        if request.user.id != int(target_clothes_review_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
@@ -797,8 +738,8 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         final_results = []
         offset = 0 if offset == None else int(offset)
         limit = count if limit == None else int(limit)
-        limit_count = 0
-        
+
+        limit_count = 0        
         for result in results[offset:]:
             limit_count += 1
             final_results.append(result)
@@ -884,8 +825,8 @@ class ClothesSetReviewView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewS
         final_results = []
         offset = 0 if offset == None else int(offset)
         limit = count if limit == None else int(limit)
-        limit_count = 0
-        
+
+        limit_count = 0        
         for result in results[offset:]:
             limit_count += 1
             final_results.append(result)
