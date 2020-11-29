@@ -375,11 +375,9 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         if request.query_params.get('review'):
             reviews = ClothesSetReview.objects.all()
-            
-            queryset_list = list(queryset)
-            for clothesSet in queryset_list:
-                included_reviews = reviews.filter(clothes_set__id=clothesSet.id)
-                if len(included_reviews) == 0:
+        
+            for clothesSet in list(queryset):
+                if len(reviews.filter(clothes_set__id=clothesSet.id)) == 0:
                     queryset = queryset.exclude(id=clothesSet.id)
 
         page = self.paginate_queryset(queryset)
@@ -403,17 +401,12 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         if 'clothes' in request.data.keys():
-            user = request.user
-            
-            all_clothes = Clothes.objects.all()
-            filtered_clothes = all_clothes.filter(owner_id=user.id)
+            filtered_clothes = Clothes.objects.all().filter(owner_id=request.user.id)
             filtered_clothes_id = []
             for clothes in filtered_clothes:
                 filtered_clothes_id.append(int(clothes.id))
                 
             # 입력된 옷들이 모두 해당 유저의 것인지 확인.
-            # TODO(mskwon1): content-type이 json이 아닌경우 바꿔줘야함.
-            # for clothes_id in request.data.getlist('clothes'):
             for clothes_id in request.data['clothes']:
                 if int(clothes_id) not in filtered_clothes_id:
                     return Response({
@@ -435,11 +428,9 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         serializer.save(owner_id = self.request.user.id)
 
     def update(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_set = ClothesSet.objects.filter(id=key)
+        target_clothes_set = ClothesSet.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_set[0].owner.id):
+        if request.user.id != int(target_clothes_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
@@ -451,11 +442,9 @@ class ClothesSetView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
-        user = request.user
-        key = int(kwargs.pop('pk'))
-        target_clothes_set = ClothesSet.objects.filter(id=key)
+        target_clothes_set = ClothesSet.objects.filter(id=int(kwargs.pop('pk')))
         
-        if user.id != int(target_clothes_set[0].owner.id):
+        if request.user.id != int(target_clothes_set[0].owner.id):
             return Response({
                 'error' : 'you are not allowed to access this object'
             }, status=status.HTTP_401_UNAUTHORIZED)
