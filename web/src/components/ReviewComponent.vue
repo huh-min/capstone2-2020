@@ -8,7 +8,7 @@
         </b-alert>
         <b-row>
           <b-col cols="4" class="text-left">
-            <b-button to="/cody/detail">뒤로가기</b-button>
+            <b-button to="/cody">뒤로가기</b-button>
           </b-col>
         </b-row>
         <h3 class="text-center text-top">리뷰   작성</h3>
