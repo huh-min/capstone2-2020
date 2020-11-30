@@ -1,6 +1,6 @@
 <template>
 <b-container>
-    <b-alert id="Alert" v-model="showAlert" variant="danger" dismissible style="word-break: keep-all">
+    <b-alert id="Alert" v-model="showAlert" variant="success" dismissible style="word-break: keep-all">
     {{ alertMessage }}
     </b-alert>
     <b-row>
