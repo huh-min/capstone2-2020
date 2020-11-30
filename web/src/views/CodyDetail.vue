@@ -67,7 +67,7 @@
         </b-row>
         <b-row>
           <b-col md="4" cols="12" class="mb-3" v-for="cody_review in reviews" :key="cody_review.id">
-            <ClothesSetReviewCard :review="cody_review"/>
+            <ClothesSetReviewModifyCard :review="cody_review"/>
           </b-col>
         </b-row>
     </b-container>
@@ -76,10 +76,10 @@
 <script>
 import axios from 'axios'
 import consts from '@/consts.js'
-import ClothesSetReviewCard from '@/components/cards/ClothesSetReviewCard.vue'
+import ClothesSetReviewModifyCard from '@/components/cards/ClothesSetReviewModifyCard.vue'
 export default {
   components: {
-    ClothesSetReviewCard
+    ClothesSetReviewModifyCard
   },
   data: function () {
     return {

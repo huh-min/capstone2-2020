@@ -43,6 +43,14 @@
         <b-img src="@/assets/rain.png" width="30px" />
         {{ round(review.precipitation, 1) }} mm
       </p>
+      <b-row>
+        <b-col>
+          <b-button size="sm" @click="deleteCodyReview">삭제</b-button>
+        </b-col>
+        <b-col>
+          <b-button size="sm" @click="modifyCodyReview">수정</b-button>
+        </b-col>
+      </b-row>
     </template>
   </b-overlay>
 </template>
