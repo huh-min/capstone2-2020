@@ -44,7 +44,10 @@ export default {
       analysis_props: {
         upper: '',
         lower: '',
-        alias: ''
+        alias: '',
+        category:'',
+        category_upper:'',
+        category_lower:''
       },
       disableAnalysis: true,
       alertMessage: '',
@@ -61,7 +64,10 @@ export default {
       var data = {
         image_url: this.image,
         upper_category: this.analysis_props.upper,
-        lower_category: this.analysis_props.lower
+        lower_category: this.analysis_props.lower,
+        category: this.analysis_props.category,
+        category_upper: this.analysis_props.category_upper,
+        category_lower: this.analysis_props.category_lower
       }
       if (this.analysis_props.alias !== '') {
         data['alias'] = this.analysis_props.alias
@@ -97,6 +103,10 @@ export default {
           this.image = response.data.image_url
           this.analysis_props.upper = response.data.upper_category
           this.analysis_props.lower = response.data.lower_category
+          this.analysis_props.category = response.data.category_id[0].id
+          this.analysis_props.category_upper = response.data.category_upper[0].upper_category
+          this.analysis_props.category_lower = response.data.category_lower[0].lower_category
+
           this.isLoading = false
         }).catch((ex) => {
           this.alertMessage = '옷 분석에 실패했습니다. 오류가 계속 될 경우, 관리자에게 연락해주세요.'

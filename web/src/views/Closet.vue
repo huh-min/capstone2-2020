@@ -21,7 +21,7 @@
               </b-row>
                 <b-row>
                     <b-col v-for="clothe in clothes" :key="clothe.id" md="4" cols="12" class="mb-3">
-                        <ClothesCard :clothes="clothe"/>
+                        <ClothesCard :clothes="clothe" :categoryData="categoryData" />
                     </b-col>
                 </b-row>
             </b-col>
@@ -47,7 +47,9 @@ export default {
       alertMessage: '',
       noClotheMessage: '',
       showAlert: false,
-      showClotheAlert: false
+      showClotheAlert: false,
+      noCategoryDataMessage: '',
+      showCategoryAlert: false
     }
   },
   computed: {
@@ -94,6 +96,7 @@ export default {
           this.alertMessage = '옷을 불러올 수 없습니다. 다시 시도해주세요'
           this.showAlert = true
         })
+  
     }
   },
   watch: {

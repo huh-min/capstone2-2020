@@ -15,7 +15,7 @@ class CategoryDataSerializer(serializers.ModelSerializer):
         
 class ClothesSerializer(serializers.ModelSerializer):
 
-    category = CategoryDataSerializer()
+    ##category = CategoryDataSerializer()
 
     class Meta:
         model = Clothes

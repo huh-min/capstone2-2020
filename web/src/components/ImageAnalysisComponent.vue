@@ -33,7 +33,7 @@
         <b-col cols="8">
           <b-form-input type="text"
                           id="form-alias"
-                          v-model="analysis_props.alias"
+                          v-model="analysis_props.category_upper"
                           :disabled="isDisabled" />
         </b-col>
       </b-row>

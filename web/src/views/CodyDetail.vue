@@ -178,14 +178,14 @@ export default {
       }
       var data = {
         image_url: vm.image,
-        name: vm.analysis_props.name,
+        alias: vm.analysis_props.name,
         style: vm.analysis_props.style
       }
       axios.patch(`${consts.SERVER_BASE_URL}/clothes-sets/${clothesId}/`, data, config)
         .then(response => {
           this.alertMessage = '코디 정보를 수정했습니다.'
           this.showAlert = true
-          vm.analysis_props.name = response.data.name
+          vm.analysis_props.name = response.data.alias
           vm.analysis_props.style = response.data.style
           vm.disableAnalysis = true
         }).catch((ex) => {

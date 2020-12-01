@@ -49,12 +49,13 @@ export default {
         upper_category: '',
         id: 0,
         owner: '',
-        category: []
+        category: ''
       },
       analysis_props: {
         upper: '',
         lower: '',
-        alias: ''
+        alias: '',
+        category: ''
       },
       disableAnalysis: true,
       alertMessage: '',
@@ -95,6 +96,7 @@ export default {
             vm.analysis_props.upper = vm.clothes.upper_category
             vm.analysis_props.lower = vm.clothes.lower_category
             vm.analysis_props.alias = vm.clothes.alias
+            vm.analysis_props.category = vm.clothes.category_id
           }).catch((ex) => {
             this.alertMessage = '해당 옷을 불러올 수 없습니다. 다시 시도해주세요'
             this.showAlert = true
@@ -117,7 +119,8 @@ export default {
         image_url: vm.image,
         upper_category: vm.analysis_props.upper,
         lower_category: vm.analysis_props.lower,
-        alias: vm.analysis_props.alias
+        alias: vm.analysis_props.alias,
+        category_id: vm.analysis_props.category
       }
       axios.patch(`${consts.SERVER_BASE_URL}/clothes/${clothesId}/`, data, config)
         .then(response => {
@@ -126,6 +129,7 @@ export default {
           vm.analysis_props.alias = response.data.alias
           vm.analysis_props.upper = response.data.upper_category
           vm.analysis_props.lower = response.data.lower_category
+          vm.analysis_props.category = response.data.category_id
           vm.disableAnalysis = true
         }).catch((ex) => {
           this.alertMessage = '해당 옷을 수정할 수 없습니다. 다시 시도해주세요'
