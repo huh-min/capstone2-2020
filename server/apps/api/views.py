@@ -107,6 +107,17 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = CategoryData.objects.all()
     serializer_class = CategoryDataSerializer
 
+    @action(detail=False, methods=['get'])
+    def category(self, request, *args, **kwargs):
+        category_set = CategoryData.objects.all().filter(id=request.query_params.get('category_id'))
+        upper = category_set.values_list('upper_category', flat=True)[0]
+        lower = category_set.values_list('lower_category', flat=True)[0]
+
+        return Response({
+            "upper_category" : upper,
+            "lower_category" : lower
+        })
+
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
     serializer_class = ClothesSerializer
