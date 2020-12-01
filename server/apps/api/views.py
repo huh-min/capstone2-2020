@@ -117,6 +117,7 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
             "upper_category" : upper,
             "lower_category" : lower
         })
+        
 
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
