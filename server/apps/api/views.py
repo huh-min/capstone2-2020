@@ -270,7 +270,8 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         for clothes_set in filtered_clothes_set:
             
             # 한 코디에 대한 각 옷들의 하위 카테고리 추출
-            comb = tuple(clothes_set.clothes.values_list('lower_category', flat=True).order_by('lower_category').distinct())
+            category_set = CategoryData.objects.all().filter(id__in=clothes_set.clothes.values_list('category', flat=True))
+            comb = tuple(category_set.values_list('lower_category', flat=True).order_by('lower_category').distinct())
             if comb in combination_dict.keys():
                 combination_dict[comb][0] += 1
                 combination_dict[comb][1].add(clothes_set.image_url)
