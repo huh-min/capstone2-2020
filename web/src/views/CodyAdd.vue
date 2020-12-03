@@ -14,7 +14,7 @@
               <b-row>
                 <template v-if="clothesExists">
                   <b-col v-for="clothe in clothes" :key="clothe.id" cols=12 lg=6 class="mb-3">
-                    <ClothesCard class="mb-1" :clothes="clothe">
+                    <ClothesCard class="mb-1" :clothes="clothe" :categorydata="categorydata">
                       <template v-slot:additionalButton>
                         <b-button class="mt-1" variant="info" @click="handleAddClothes(clothe.id, clothe.image_url)">
                           추가하기
@@ -94,6 +94,7 @@ export default {
     return {
       canvas: undefined,
       clothes: [],
+      categorydata: [],
       includedClothes: [],
       codyName: '',
       style: '',

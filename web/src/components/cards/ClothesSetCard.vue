@@ -3,7 +3,7 @@
     <b-card>
       <b-img :src="clothes_set.image_url" fluid style="height:10rem"/>
       <b-card-title>
-        {{ clothes_set.name }}
+        {{ clothes_set.alias }}
       </b-card-title>
       <b-button pill variant="info">
         {{ clothes_set.style }}

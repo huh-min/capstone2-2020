@@ -155,7 +155,6 @@ export default {
       url += this.clothes_set_id + '/'
       axios.get(url, config)
         .then(response => {
-          console.log(response)
           this.imageURL = response.data.image_url
         }).catch((ex) => {
           this.alertMessage = '코디 이미지를 불러오지 못하였습니다. 오류가 계속 될 경우, 관리자에게 연락해주세요.'

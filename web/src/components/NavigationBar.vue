@@ -77,7 +77,7 @@ export default {
       axios.get(`${consts.SERVER_BASE_URL}/users/me/`, config)
         .then((response) => {
           vm.isLoggedIn = true
-          vm.username = response.data.username
+          vm.username = response.data.user_name
         }).catch((ex) => {
           // TODO: error handling.
           vm.isLoggedIn = false
@@ -101,7 +101,7 @@ export default {
       axios.get(`${consts.SERVER_BASE_URL}/users/me/`, config)
         .then((response) => {
           vm.isLoggedIn = true
-          vm.username = response.data.username
+          vm.username = response.data.user_name
         }).catch((ex) => {
           // TODO: error handling.
           vm.isLoggedIn = false
