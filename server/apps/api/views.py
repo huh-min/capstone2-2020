@@ -118,6 +118,21 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
             "lower_category" : lower
         })
         
+    @action(detail=False, methods=['get'])   
+    def filter_category(self, request, *args, **kwargs):
+        
+        category_id_set = CategoryData.objects.all()
+        if request.query_params.get('upper_category'):
+            category_id_set = category_id_set.filter(upper_category=request.query_params.get('upper_category'))
+
+        if request.query_params.get('lower_category'):
+            category_id_set = category_id_set.filter(lower_category=request.query_params.get('lower_category'))
+
+        category_id_set = category_id_set.values_list('id', flat=True)        
+        filtered_clothes_set = Clothes.objects.all().filter(category__in=category_id_set, owner_id=request.user.id).values()   
+
+        return Response(filtered_clothes_set)
+
 
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
