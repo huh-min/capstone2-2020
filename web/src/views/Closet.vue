@@ -116,29 +116,22 @@ export default {
             axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true`, config)
               .then((response) => {
                 vm.clothes = response.data.results
-                console.log('여기1')
                 }).catch((ex) => {
                 this.alertMessage = '전체 옷을 불러올 수 없습니다. 다시 시도해주세요'
                 this.showAlert = true
               })
           } else if (vm.currentCategories.lower === '전체') {
-            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&upper_category=${vm.currentCategories.upper}`, config)
+            axios.get(`${consts.SERVER_BASE_URL}/categorydata/filter_category/?upper_category=${vm.currentCategories.upper}`, config)
               .then((response) => {
-                vm.clothes = response.data.results                
-                console.log(vm.currentCategories.upper)
-                console.log(vm.currentCategories.lower)
-                console.log('여기2')
+                vm.clothes = response.data
               }).catch((ex) => {
                 this.alertMessage = '해당 카테고리의 전체 옷을 불러올 수 없습니다. 다시 시도해주세요'
                 this.showAlert = true
               })
           } else {
-            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&lower_category=${vm.currentCategories.lower}`, config)
+            axios.get(`${consts.SERVER_BASE_URL}/categorydata/filter_category/?lower_category=${vm.currentCategories.lower}`, config)
               .then((response) => {
-                vm.clothes = response.data.results
-                console.log(vm.currentCategories.upper)
-                console.log(vm.currentCategories.lower)
-                console.log('여기3')
+                vm.clothes = response.data
               }).catch((ex) => {
                 this.alertMessage = '해당 소분류 카테고리를 불러올 수없습니다. 다시 시도해주세요'
                 this.showAlert = true
