@@ -107,29 +107,19 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = CategoryData.objects.all()
     serializer_class = CategoryDataSerializer
 
-    def list(self, request, *args, **kwargs):
-        # If me parameter is set, check authentication.
-        if request.query_params.get('me') and not request.user.is_authenticated:
-            return Response({
-                'error' : 'token authorization failed ... please log in'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-            
-        queryset = self.filter_queryset(self.get_queryset())
-        if request.query_params.get('review'):
-            reviews = ClothesSetReview.objects.all()
-        
-            for clothesSet in list(queryset):
-                if len(reviews.filter(clothes_set__id=clothesSet.id)) == 0:
-                    queryset = queryset.exclude(id=clothesSet.id)
+    @action(detail=False, methods=['get'])
+    def category(self, request, *args, **kwargs):
+        category_set = CategoryData.objects.all().filter(id=request.query_params.get('category_id'))
+        category_id = category_set.values_list('id', flat=True)[0]
+        upper_category = category_set.values_list('upper_category', flat=True)[0]
+        lower_category = category_set.values_list('lower_category', flat=True)[0]
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        return Response({
+            "category_id" : category_id,
+            "upper_category" : upper_category,
+            "lower_category" : lower_category
+        })
 
-        serializer = self.get_serializer(queryset, many=True)
-            
-        return Response(serializer.data)
 
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
@@ -225,18 +215,14 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
         image_tensor = image_to_tensor(image)
         inference_result = execute_inference(image_tensor)
         upper, lower = get_categories_from_predictions(inference_result)
-        category_id = CategoryData.objects.all().filter(upper_category=upper, lower_category=lower).values('upper_category','lower_category')
-        category_upper = CategoryData.objects.all().filter(upper_category=upper, lower_category=lower).values('upper_category')
-        category_lower = CategoryData.objects.all().filter(upper_category=upper, lower_category=lower).values('lower_category')
+        category_id = CategoryData.objects.all().filter(upper_category=upper, lower_category=lower).values('id')
         image = remove_background(image)
         image_url = save_image_s3(image, 'clothes')
         
         return Response({'image_url': image_url, 
                          'upper_category':upper, 
                          'lower_category':lower,
-                         'category_id':category_id,
-                         'category_upper':category_upper,
-                         'category_lower':category_lower
+                         'category_id':category_id
                          }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
