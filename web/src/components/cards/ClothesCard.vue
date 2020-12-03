@@ -61,7 +61,9 @@ export default {
         headers: { Authorization: `Bearer ${token}` }
       }
       var categoryId = this.clothes.category
-
+      if(categoryId == undefined){
+        categoryId = this.clothes.category_id
+      }
       axios.get(`${consts.SERVER_BASE_URL}/categorydata/category/?category_id=${categoryId}`, config)
        .then((response) => {
          this.categoryData = response.data

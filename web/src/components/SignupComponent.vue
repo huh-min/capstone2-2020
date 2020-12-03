@@ -20,7 +20,7 @@
                   <b-form-input id="input-4" v-model="form.birth" placeholder="yyyy-mm-dd"></b-form-input>
               </b-form-group>
               <b-form-group label-cols-sm="0" label-align-sm="right" class="mb-0">
-                  <b-form-radio-group class="pt-2" :options="['남자', '여자']" v-model="form.gender"></b-form-radio-group>
+                  <b-form-radio-group class="pt-2" :options="['M', 'W']" v-model="form.gender"></b-form-radio-group>
               </b-form-group>
               <b-row>
                 <b-col class="col-6" style="margin:0 auto">
@@ -55,7 +55,7 @@ export default {
   methods: {
     handleSignup: function () {
       var token = ''
-      axios.post(`${consts.SERVER_BASE_URL}/users/`, { username: this.form.id, password: this.form.password, nickname: this.form.nickname, gender: this.form.gender, birthday: this.form.birth })
+      axios.post(`${consts.SERVER_BASE_URL}/users/`, { user_id: this.form.id, password: this.form.password, user_name: this.form.nickname, gender: this.form.gender, birthday: this.form.birth })
         .then(response => {
           token = response.data.access
           window.localStorage.setItem('token', token)

@@ -222,18 +222,26 @@ export default {
           var config = {
             headers: { Authorization: `Bearer ${token}` }
           }
-          if (vm.currentCategories.lower === '전체') {
-            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&upper_category=${vm.currentCategories.upper}`, config)
+          if (vm.currentCategories.upper === '전체') {
+            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true`, config)
               .then((response) => {
                 vm.clothes = response.data.results
-              }).catch((ex) => {
+                }).catch((ex) => {
+                this.alertMessage = '전체 옷을 불러올 수 없습니다. 다시 시도해주세요'
+                this.showAlert = true
+              })
+          } else if (vm.currentCategories.lower === '전체') {
+            axios.get(`${consts.SERVER_BASE_URL}/categorydata/filter_category/?upper_category=${vm.currentCategories.upper}`, config)
+              .then((response) => {
+                vm.clothes = response.data
+                }).catch((ex) => {
                 this.alertMessage = '옷 정보를 받아오는데 실패했습니다. 오류가 계속될 경우 관리자에게 연락해주세요!'
                 this.showAlert = true
               })
           } else {
-            axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true&lower_category=${vm.currentCategories.lower}`, config)
+            axios.get(`${consts.SERVER_BASE_URL}/categorydata/filter_category/?lower_category=${vm.currentCategories.lower}`, config)
               .then((response) => {
-                vm.clothes = response.data.results
+                vm.clothes = response.data
               }).catch((ex) => {
                 this.alertMessage = '옷 정보를 받아오는데 실패했습니다. 오류가 계속될 경우 관리자에게 연락해주세요!'
                 this.showAlert = true
