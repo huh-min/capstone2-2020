@@ -119,7 +119,6 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
             "upper_category" : upper_category,
             "lower_category" : lower_category
         })
-<<<<<<< HEAD
         
     @action(detail=False, methods=['get'])   
     def filter_category(self, request, *args, **kwargs):
@@ -136,8 +135,6 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
 
         return Response(filtered_clothes_set)
 
-=======
->>>>>>> 20e71f8d7caa4da3998c48ce72430529c1cdc808
 
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
