@@ -49,7 +49,7 @@ export default {
         upper_category: '',
         id: 0,
         owner: '',
-        category: ''
+        category_id: ''
       },
       analysis_props: {
         upper: '',
@@ -57,13 +57,19 @@ export default {
         alias: '',
         category: ''
       },
+      categoryData:'',
+      noClotheMessage: '',
+      noCategoryDataMessage: '',
       disableAnalysis: true,
       alertMessage: '',
-      showAlert: false
+      showAlert: false,
+      showCategoryAlert: false
     }
   },
-  props: [
-    'clothes_id'
+  props: [    
+    'clothes_id',
+    'clothes_category',
+    'categorydata'
   ],
   created: function () {
     var vm = this
@@ -89,18 +95,37 @@ export default {
           }
         })
       } else {
+        var token = window.localStorage.getItem('token')
+        var config = {
+          headers: { Authorization: `Bearer ${token}` }
+        }
         var clothesId = vm.clothes_id
+
         axios.get(`${consts.SERVER_BASE_URL}/clothes/${clothesId}/`)
           .then((response) => {
             vm.clothes = response.data
-            vm.analysis_props.upper = vm.clothes.upper_category
-            vm.analysis_props.lower = vm.clothes.lower_category
-            vm.analysis_props.alias = vm.clothes.alias
-            vm.analysis_props.category = vm.clothes.category_id
+            vm.analysis_props.category = response.data.category_id
+            vm.analysis_props.alias = response.data.alias
           }).catch((ex) => {
             this.alertMessage = '해당 옷을 불러올 수 없습니다. 다시 시도해주세요'
             this.showAlert = true
           })
+        
+        var categoryId = vm.clothes_category
+
+        axios.get(`${consts.SERVER_BASE_URL}/categorydata/category/?category_id=${categoryId}`, config)
+       .then((response) => {
+         this.categoryData = response.data
+         vm.analysis_props.upper = this.categoryData.upper_category
+         vm.analysis_props.lower =this.categoryData.lower_category
+         if (this.categoryData.length === 0) {
+           this.noCategoryDataMessage = '등록된 옷이 없습니다. 옷을 등록해 주세요'
+           this.showCategoryAlert = true
+           }
+        }).catch((ex) => {
+          this.alertMessage = '옷을 불러올 수 없습니다. 다시 시도해주세요'
+          this.showAlert = true
+        })
       }
     }
   },
@@ -116,20 +141,14 @@ export default {
         headers: { Authorization: `Bearer ${token}` }
       }
       var data = {
-        image_url: vm.image,
-        upper_category: vm.analysis_props.upper,
-        lower_category: vm.analysis_props.lower,
-        alias: vm.analysis_props.alias,
-        category_id: vm.analysis_props.category
+        image_url: vm.image,        
+        alias: vm.analysis_props.alias
       }
       axios.patch(`${consts.SERVER_BASE_URL}/clothes/${clothesId}/`, data, config)
         .then(response => {
           this.alertMessage = '옷의 정보를 수정했습니다.'
-          this.showAlert = true
+          this.showAlert = true          
           vm.analysis_props.alias = response.data.alias
-          vm.analysis_props.upper = response.data.upper_category
-          vm.analysis_props.lower = response.data.lower_category
-          vm.analysis_props.category = response.data.category_id
           vm.disableAnalysis = true
         }).catch((ex) => {
           this.alertMessage = '해당 옷을 수정할 수 없습니다. 다시 시도해주세요'

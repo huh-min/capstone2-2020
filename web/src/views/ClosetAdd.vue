@@ -45,9 +45,7 @@ export default {
         upper: '',
         lower: '',
         alias: '',
-        category:'',
-        category_upper:'',
-        category_lower:''
+        category:''
       },
       disableAnalysis: true,
       alertMessage: '',
@@ -65,9 +63,7 @@ export default {
         image_url: this.image,
         upper_category: this.analysis_props.upper,
         lower_category: this.analysis_props.lower,
-        category: this.analysis_props.category,
-        category_upper: this.analysis_props.category_upper,
-        category_lower: this.analysis_props.category_lower
+        category: this.analysis_props.category       
       }
       if (this.analysis_props.alias !== '') {
         data['alias'] = this.analysis_props.alias
@@ -103,9 +99,7 @@ export default {
           this.image = response.data.image_url
           this.analysis_props.upper = response.data.upper_category
           this.analysis_props.lower = response.data.lower_category
-          this.analysis_props.category = response.data.category_id[0].id
-          this.analysis_props.category_upper = response.data.category_upper[0].upper_category
-          this.analysis_props.category_lower = response.data.category_lower[0].lower_category
+          this.analysis_props.category = response.data.category_id[0].id         
 
           this.isLoading = false
         }).catch((ex) => {
