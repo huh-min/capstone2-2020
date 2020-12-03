@@ -120,7 +120,6 @@ class CategoryDataView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
             "lower_category" : lower_category
         })
 
-
 class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Clothes.objects.all()
     serializer_class = ClothesSerializer
