@@ -30,13 +30,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Clothes(models.Model):
-
-    upper_category = models.CharField(max_length=9, choices=UPPER_CATEGORY_CHOICES)    
+ 
     image_url = models.URLField(unique=True)
     alias = models.CharField(max_length=30, null=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
-    lower_category = models.CharField(max_length=18, choices=LOWER_CATEGORY_CHOICES)
     category = models.ForeignKey('CategoryData', on_delete=models.CASCADE,null=True)
 
 

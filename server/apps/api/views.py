@@ -156,15 +156,15 @@ class ClothesView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet):
     ordering = ('-created_at', )
 
     # Apply filtering, using other query parameters.
-    filter_mappings = {
-        'upper_category': 'upper_category__in',
-        'lower_category': 'lower_category__in',
-    }
+    # filter_mappings = {
+    #     'upper_category': 'upper_category__in',
+    #     'lower_category': 'lower_category__in',
+    # }
     
-    filter_value_transformations = {
-        'upper_category': lambda val: val.split(','),
-        'lower_category': lambda val: val.split(',')
-    }
+    # filter_value_transformations = {
+    #     'upper_category': lambda val: val.split(','),
+    #     'lower_category': lambda val: val.split(',')
+    # }
 
     # Use filter validation.
     filter_validation_schema = clothes_query_schema
@@ -353,10 +353,10 @@ class ClothesNestedView(FiltersMixin, NestedViewSetMixin, viewsets.ModelViewSet)
     ordering = ('-created_at', )
 
     # Apply filtering, using other query parameters.
-    filter_mappings = {
-        'upper_category': 'upper_category',
-        'lower_category': 'lower_category',
-    }
+    # filter_mappings = {
+    #     'upper_category': 'upper_category',
+    #     'lower_category': 'lower_category',
+    # }
 
     # Use filter validation.
     filter_validation_schema = clothes_query_schema
