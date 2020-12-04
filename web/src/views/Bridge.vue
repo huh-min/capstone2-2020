@@ -3,7 +3,7 @@
     <template v-if="isDefault">
       <b-row>
         <b-col class="mb-3" cols="12">
-          오류입니다
+          오류입니다.
         </b-col>
         <b-col cols="12">
           <b-button @click="handleHome">

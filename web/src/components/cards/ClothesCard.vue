@@ -23,9 +23,9 @@ import axios from 'axios'
 import consts from '@/consts.js'
 export default {
   data: function () {
-    return {     
-      categoryData:'', 
-      noCategorydataMessage:'',
+    return {
+      categoryData: '',
+      noCategorydataMessage: '',
       showCategoryAlert: false,
       alertMessage: '',
       showAlert: false,
@@ -38,7 +38,7 @@ export default {
   ],
   methods: {
     handleClick: function () {
-      this.$router.push({ name: 'ClosetDetail', params: { clothes_id: this.clothes.id , clothes_category: this.clothes.category} })
+      this.$router.push({ name: 'ClosetDetail', params: { clothes_id: this.clothes.id, clothes_category: this.clothes.category } })
     },
     handleHover: function (hovered) {
       this.isHovered = hovered
@@ -61,16 +61,16 @@ export default {
         headers: { Authorization: `Bearer ${token}` }
       }
       var categoryId = this.clothes.category
-      if(categoryId == undefined){
+      if (categoryId === undefined) {
         categoryId = this.clothes.category_id
       }
       axios.get(`${consts.SERVER_BASE_URL}/categorydata/category/?category_id=${categoryId}`, config)
-       .then((response) => {
-         this.categoryData = response.data
-         if (this.categoryData.length === 0) {
-           this.noCategorydataMessage = '등록된 옷이 없습니다. 옷을 등록해 주세요'
-           this.showCategoryAlert = true
-           }
+        .then((response) => {
+          this.categoryData = response.data
+          if (this.categoryData.length === 0) {
+            this.noCategorydataMessage = '등록된 옷이 없습니다. 옷을 등록해 주세요'
+            this.showCategoryAlert = true
+          }
         }).catch((ex) => {
           this.alertMessage = '옷을 불러올 수 없습니다. 다시 시도해주세요'
           this.showAlert = true

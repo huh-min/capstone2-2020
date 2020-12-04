@@ -100,7 +100,7 @@ export default {
           this.alertMessage = '옷을 불러올 수 없습니다. 다시 시도해주세요'
           this.showAlert = true
         })
-      }
+    }
   },
   watch: {
     currentCategories: {
@@ -116,7 +116,7 @@ export default {
             axios.get(`${consts.SERVER_BASE_URL}/clothes/?me=true`, config)
               .then((response) => {
                 vm.clothes = response.data.results
-                }).catch((ex) => {
+              }).catch((ex) => {
                 this.alertMessage = '전체 옷을 불러올 수 없습니다. 다시 시도해주세요'
                 this.showAlert = true
               })
@@ -133,7 +133,7 @@ export default {
               .then((response) => {
                 vm.clothes = response.data
               }).catch((ex) => {
-                this.alertMessage = '해당 소분류 카테고리를 불러올 수없습니다. 다시 시도해주세요'
+                this.alertMessage = '해당 소분류 카테고리를 불러올 수 없습니다. 다시 시도해주세요'
                 this.showAlert = true
               })
           }

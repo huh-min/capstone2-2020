@@ -57,7 +57,7 @@ export default {
         alias: '',
         category: ''
       },
-      categoryData:'',
+      categoryData: '',
       noClotheMessage: '',
       noCategoryDataMessage: '',
       disableAnalysis: true,
@@ -66,7 +66,7 @@ export default {
       showCategoryAlert: false
     }
   },
-  props: [    
+  props: [
     'clothes_id',
     'clothes_category',
     'categorydata'
@@ -110,22 +110,22 @@ export default {
             this.alertMessage = '해당 옷을 불러올 수 없습니다. 다시 시도해주세요'
             this.showAlert = true
           })
-        
+
         var categoryId = vm.clothes_category
 
         axios.get(`${consts.SERVER_BASE_URL}/categorydata/category/?category_id=${categoryId}`, config)
-       .then((response) => {
-         this.categoryData = response.data
-         vm.analysis_props.upper = this.categoryData.upper_category
-         vm.analysis_props.lower =this.categoryData.lower_category
-         if (this.categoryData.length === 0) {
-           this.noCategoryDataMessage = '등록된 옷이 없습니다. 옷을 등록해 주세요'
-           this.showCategoryAlert = true
-           }
-        }).catch((ex) => {
-          this.alertMessage = '옷을 불러올 수 없습니다. 다시 시도해주세요'
-          this.showAlert = true
-        })
+          .then((response) => {
+            this.categoryData = response.data
+            vm.analysis_props.upper = this.categoryData.upper_category
+            vm.analysis_props.lower = this.categoryData.lower_category
+            if (this.categoryData.length === 0) {
+              this.noCategoryDataMessage = '등록된 옷이 없습니다. 옷을 등록해 주세요'
+              this.showCategoryAlert = true
+            }
+          }).catch((ex) => {
+            this.alertMessage = '옷을 불러올 수 없습니다. 다시 시도해주세요'
+            this.showAlert = true
+          })
       }
     }
   },
@@ -141,13 +141,13 @@ export default {
         headers: { Authorization: `Bearer ${token}` }
       }
       var data = {
-        image_url: vm.image,        
+        image_url: vm.image,
         alias: vm.analysis_props.alias
       }
       axios.patch(`${consts.SERVER_BASE_URL}/clothes/${clothesId}/`, data, config)
         .then(response => {
           this.alertMessage = '옷의 정보를 수정했습니다.'
-          this.showAlert = true          
+          this.showAlert = true
           vm.analysis_props.alias = response.data.alias
           vm.disableAnalysis = true
         }).catch((ex) => {

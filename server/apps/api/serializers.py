@@ -14,9 +14,6 @@ class CategoryDataSerializer(serializers.ModelSerializer):
         fields = ('upper_category', 'lower_category')
         
 class ClothesSerializer(serializers.ModelSerializer):
-
-    ##category = CategoryDataSerializer()
-
     class Meta:
         model = Clothes
         fields = ('id', 'image_url', 'alias', 'owner','category')
